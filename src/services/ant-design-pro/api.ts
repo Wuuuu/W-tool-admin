@@ -1,12 +1,13 @@
 // @ts-ignore
 /* eslint-disable */
 import { request } from '@umijs/max';
+import _pick from 'lodash/pick';
 
-/** 获取当前的用户 GET /api/currentUser */
+/** 获取当前的用户 GET /api/user/info */
 export async function currentUser(options?: { [key: string]: any }) {
   return request<{
     data: API.CurrentUser;
-  }>('/api/currentUser', {
+  }>('/api/user/info', {
     method: 'GET',
     ...(options || {}),
   });
@@ -20,14 +21,14 @@ export async function outLogin(options?: { [key: string]: any }) {
   });
 }
 
-/** 登录接口 POST /api/login/account */
+/** 登录接口 POST /api/auth/login */
 export async function login(body: API.LoginParams, options?: { [key: string]: any }) {
-  return request<API.LoginResult>('/api/login/account', {
+  return request<API.LoginResult>('/api/auth/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    data: body,
+    data: _pick(body, ['username', 'password']),
     ...(options || {}),
   });
 }
