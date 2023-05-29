@@ -801,7 +801,7 @@ exports[`Login Page should show login form 1`] = `
                           <input
                             class="ant-input ant-input-lg"
                             id="username"
-                            placeholder="Username: admin or user"
+                            placeholder="Username"
                             type="text"
                             value=""
                           />
