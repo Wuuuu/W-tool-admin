@@ -41,23 +41,17 @@ declare namespace API {
     pageSize?: number;
   };
 
-  type RuleListItem = {
-    key?: number;
-    disabled?: boolean;
-    href?: string;
-    avatar?: string;
-    name?: string;
-    owner?: string;
-    desc?: string;
-    callNo?: number;
-    status?: number;
-    updatedAt?: string;
-    createdAt?: string;
-    progress?: number;
+  type CollectionListItem = {
+    _id: string;
+    collectionName?: string;
+    summary?: string;
+    likeCount?: number;
+    updatedTime?: string;
+    createdTime?: string;
   };
 
-  type RuleList = {
-    data?: RuleListItem[];
+  type CollectionList = {
+    data?: CollectionListItem[];
     /** 列表的内容总数 */
     total?: number;
     success?: boolean;

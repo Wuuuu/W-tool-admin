@@ -41,8 +41,8 @@ export async function getNotices(options?: { [key: string]: any }) {
   });
 }
 
-/** 获取规则列表 GET /api/rule */
-export async function rule(
+/** 获取规则列表 GET /api/knowledge-category/list */
+export async function knowledgeList(
   params: {
     // query
     /** 当前的页码 */
@@ -52,7 +52,7 @@ export async function rule(
   },
   options?: { [key: string]: any },
 ) {
-  return request<API.RuleList>('/api/rule', {
+  return request<API.CollectionList>('/api/knowledge-category/list', {
     method: 'GET',
     params: {
       ...params,
@@ -63,7 +63,7 @@ export async function rule(
 
 /** 新建规则 PUT /api/rule */
 export async function updateRule(options?: { [key: string]: any }) {
-  return request<API.RuleListItem>('/api/rule', {
+  return request<API.CollectionListItem>('/api/rule', {
     method: 'PUT',
     ...(options || {}),
   });
@@ -71,7 +71,7 @@ export async function updateRule(options?: { [key: string]: any }) {
 
 /** 新建规则 POST /api/rule */
 export async function addRule(options?: { [key: string]: any }) {
-  return request<API.RuleListItem>('/api/rule', {
+  return request<API.CollectionListItem>('/api/rule', {
     method: 'POST',
     ...(options || {}),
   });
