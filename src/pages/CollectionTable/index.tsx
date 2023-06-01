@@ -1,6 +1,6 @@
 import {
   addCollection,
-  removeRule,
+  removeCollection,
   knowledgeList,
   updateRule,
 } from '@/services/ant-design-pro/api';
@@ -17,7 +17,7 @@ import {
   ProFormUploadButton,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl } from '@umijs/max';
-import { Button, Drawer, message } from 'antd';
+import { Button, Drawer, Image, message, Popconfirm } from 'antd';
 import React, { useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
@@ -32,14 +32,13 @@ const handleAdd = async (fields: API.CollectionListItem) => {
   const hide = message.loading('正在添加');
   try {
     const params = { ...otherFields, coverUrl: coverUrl?.[0]?.response?.data?.url };
-    console.log('params', params);
     await addCollection(params);
     hide();
     message.success('合集添加成功');
     return true;
   } catch (error) {
     hide();
-    message.error('添加失败，请重试!');
+    // message.error('添加失败，请重试!');
     return false;
   }
 };
@@ -79,8 +78,8 @@ const handleRemove = async (selectedRows: API.CollectionListItem[]) => {
   const hide = message.loading('正在删除');
   if (!selectedRows) return true;
   try {
-    await removeRule({
-      key: selectedRows.map((row) => row._id),
+    await removeCollection({
+      id: selectedRows.map((row) => row._id),
     });
     hide();
     message.success('Deleted successfully and will refresh soon');
@@ -98,6 +97,7 @@ const CollectionList: React.FC = () => {
    * @zh-CN 新建窗口的弹窗
    *  */
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
+  const [confirmLoading, setConfirmLoading] = useState<boolean>(false);
   /**
    * @en-US The pop-up window of the distribution update window
    * @zh-CN 分布更新窗口的弹窗
@@ -109,6 +109,25 @@ const CollectionList: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.CollectionListItem>();
   const [selectedRowsState, setSelectedRows] = useState<API.CollectionListItem[]>([]);
+
+  const handleOk = async (e: React.MouseEvent<HTMLElement>, row: API.CollectionListItem) => {
+    setConfirmLoading(true);
+    try {
+      const res = await removeCollection({
+        id: row._id,
+      });
+      message.success(res.data || '删除成功');
+      actionRef.current?.reloadAndRest?.();
+    } catch (error) {
+    } finally {
+      setConfirmLoading(false);
+    }
+  };
+
+  // const handleCancel = () => {
+  //   console.log('Clicked cancel button');
+  //   // setOpen(false);
+  // };
 
   /**
    * @en-US International configuration
@@ -132,6 +151,13 @@ const CollectionList: React.FC = () => {
             {dom}
           </a>
         );
+      },
+    },
+    {
+      title: <FormattedMessage id="封面" defaultMessage="封面" />,
+      dataIndex: 'coverUrl',
+      renderText: (val: string) => {
+        return <Image src={val} width={60} />;
       },
     },
     {
@@ -160,28 +186,36 @@ const CollectionList: React.FC = () => {
         return defaultRender(item);
       },
     },
-    // {
-    //   title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Operating" />,
-    //   dataIndex: 'option',
-    //   valueType: 'option',
-    //   render: (_, record) => [
-    //     <a
-    //       key="config"
-    //       onClick={() => {
-    //         handleUpdateModalOpen(true);
-    //         setCurrentRow(record);
-    //       }}
-    //     >
-    //       <FormattedMessage id="pages.searchTable.config" defaultMessage="Configuration" />
-    //     </a>,
-    //     <a key="subscribeAlert" href="https://procomponents.ant.design/">
-    //       <FormattedMessage
-    //         id="pages.searchTable.subscribeAlert"
-    //         defaultMessage="Subscribe to alerts"
-    //       />
-    //     </a>,
-    //   ],
-    // },
+    {
+      title: <FormattedMessage id="操作" defaultMessage="操作" />,
+      dataIndex: 'option',
+      valueType: 'option',
+      render: (_, record) => [
+        <Popconfirm
+          key="delete"
+          title="删除该合集？"
+          description="删除该合集前，请清空合集内容?"
+          onConfirm={(e) => handleOk(e, record)}
+          // onCancel={handleCancel}
+          okButtonProps={{ loading: confirmLoading }}
+          okText="是"
+          cancelText="否"
+        >
+          <a key="config" style={{ color: '#FF4D4F' }}>
+            <FormattedMessage id="删除" defaultMessage="删除" />
+          </a>
+        </Popconfirm>,
+        <a
+          key="update"
+          onClick={() => {
+            handleUpdateModalOpen(true);
+            setCurrentRow(record);
+          }}
+        >
+          <FormattedMessage id="更新" defaultMessage="更新" />
+        </a>,
+      ],
+    },
   ];
 
   return (
@@ -229,15 +263,6 @@ const CollectionList: React.FC = () => {
               <FormattedMessage id="pages.searchTable.chosen" defaultMessage="Chosen" />{' '}
               <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a>{' '}
               <FormattedMessage id="pages.searchTable.item" defaultMessage="项" />
-              &nbsp;&nbsp;
-              <span>
-                <FormattedMessage
-                  id="pages.searchTable.totalServiceCalls"
-                  defaultMessage="Total number of service calls"
-                />{' '}
-                {/* {selectedRowsState.reduce((pre, item) => pre + item.callNo!, 0)}{' '} */}
-                <FormattedMessage id="pages.searchTable.tenThousand" defaultMessage="万" />
-              </span>
             </div>
           }
         >

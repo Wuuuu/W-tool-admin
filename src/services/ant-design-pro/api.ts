@@ -71,7 +71,6 @@ export async function updateRule(options?: { [key: string]: any }) {
 
 /** 新建合集 POST /api/knowledge-category/create */
 export async function addCollection(options?: { [key: string]: any }) {
-  console.log('options', options);
   return request<API.CollectionListItem>('/api/knowledge-category/create', {
     method: 'POST',
     data: options || {},
@@ -79,10 +78,9 @@ export async function addCollection(options?: { [key: string]: any }) {
   });
 }
 
-/** 删除规则 DELETE /api/rule */
-export async function removeRule(options?: { [key: string]: any }) {
-  return request<Record<string, any>>('/api/rule', {
+/** 删除规则 DELETE /api/knowledge-category/delete */
+export async function removeCollection(options?: { [key: string]: any }) {
+  return request<Record<string, any>>(`/api/knowledge-category/delete/${options?.id}`, {
     method: 'DELETE',
-    ...(options || {}),
   });
 }
