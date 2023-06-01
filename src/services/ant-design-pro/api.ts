@@ -61,17 +61,17 @@ export async function knowledgeList(
   });
 }
 
-/** 新建合集 PUT /api/knowledge-category/create */
-export async function updateRule(options?: { [key: string]: any }) {
-  return request<API.CollectionListItem>('/api/knowledge-category/create', {
-    method: 'PUT',
-    ...(options || {}),
+/** 新建合集 PUT /api/knowledge-category/update */
+export async function updateCollection(options?: { [key: string]: any }) {
+  return request<Record<string, any>>(`/api/knowledge-category/update/${options?.id}`, {
+    method: 'PATCH',
+    data: options || {},
   });
 }
 
 /** 新建合集 POST /api/knowledge-category/create */
 export async function addCollection(options?: { [key: string]: any }) {
-  return request<API.CollectionListItem>('/api/knowledge-category/create', {
+  return request<Record<string, any>>('/api/knowledge-category/create', {
     method: 'POST',
     data: options || {},
     // ...(options || {}),

@@ -59,8 +59,6 @@ export default {
   'pages.searchTable.titleOption': 'Pengoperasian',
   'pages.searchTable.config': 'Konfigurasi',
   'pages.searchTable.subscribeAlert': 'Berlangganan notifikasi',
-  'pages.searchTable.title': 'Formulir pertanyaan',
-  'pages.searchTable.new': 'Baru',
   'pages.searchTable.chosen': 'Terpilih',
   'pages.searchTable.item': 'item',
   'pages.searchTable.totalServiceCalls': 'Jumlah total panggilan layanan',

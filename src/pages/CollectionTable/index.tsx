@@ -2,10 +2,15 @@ import {
   addCollection,
   removeCollection,
   knowledgeList,
-  updateRule,
+  updateCollection,
 } from '@/services/ant-design-pro/api';
 import { PlusOutlined } from '@ant-design/icons';
-import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
+import type {
+  ActionType,
+  ProColumns,
+  ProDescriptionsItemProps,
+  ProFormInstance,
+} from '@ant-design/pro-components';
 import {
   FooterToolbar,
   ModalForm,
@@ -16,11 +21,11 @@ import {
   ProTable,
   ProFormUploadButton,
 } from '@ant-design/pro-components';
-import { FormattedMessage, useIntl } from '@umijs/max';
+import { FormattedMessage } from '@umijs/max';
 import { Button, Drawer, Image, message, Popconfirm } from 'antd';
 import React, { useRef, useState } from 'react';
-import type { FormValueType } from './components/UpdateForm';
-import UpdateForm from './components/UpdateForm';
+// import type { FormValueType } from './components/UpdateForm';
+// import UpdateForm from './components/UpdateForm';
 
 /**
  * @en-US Add node
@@ -49,21 +54,21 @@ const handleAdd = async (fields: API.CollectionListItem) => {
  *
  * @param fields
  */
-const handleUpdate = async (fields: FormValueType) => {
+const handleUpdate = async (fields: API.CollectionListItem) => {
   const hide = message.loading('Configuring');
   try {
-    await updateRule({
-      name: fields.collectionName,
-      desc: fields.summary,
-      key: fields._id,
+    const res = await updateCollection({
+      collectionName: fields.collectionName,
+      summary: fields.summary,
+      coverUrl: fields.coverUrl?.[0]?.response?.data?.url,
+      id: fields._id,
     });
     hide();
-
-    message.success('Configuration is successful');
+    message.success(res?.data || '更新成功');
     return true;
   } catch (error) {
     hide();
-    message.error('Configuration failed, please try again!');
+    // message.error('Configuration failed, please try again!');
     return false;
   }
 };
@@ -92,17 +97,13 @@ const handleRemove = async (selectedRows: API.CollectionListItem[]) => {
 };
 
 const CollectionList: React.FC = () => {
+  const modalFormRef = useRef<ProFormInstance>();
   /**
    * @en-US Pop-up window of new window
    * @zh-CN 新建窗口的弹窗
    *  */
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
   const [confirmLoading, setConfirmLoading] = useState<boolean>(false);
-  /**
-   * @en-US The pop-up window of the distribution update window
-   * @zh-CN 分布更新窗口的弹窗
-   * */
-  const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
 
   const [showDetail, setShowDetail] = useState<boolean>(false);
 
@@ -110,7 +111,10 @@ const CollectionList: React.FC = () => {
   const [currentRow, setCurrentRow] = useState<API.CollectionListItem>();
   const [selectedRowsState, setSelectedRows] = useState<API.CollectionListItem[]>([]);
 
-  const handleOk = async (e: React.MouseEvent<HTMLElement>, row: API.CollectionListItem) => {
+  const handleOk = async (
+    e: React.MouseEvent<HTMLElement> | undefined,
+    row: API.CollectionListItem,
+  ) => {
     setConfirmLoading(true);
     try {
       const res = await removeCollection({
@@ -124,20 +128,9 @@ const CollectionList: React.FC = () => {
     }
   };
 
-  // const handleCancel = () => {
-  //   console.log('Clicked cancel button');
-  //   // setOpen(false);
-  // };
-
-  /**
-   * @en-US International configuration
-   * @zh-CN 国际化配置
-   * */
-  const intl = useIntl();
-
   const columns: ProColumns<API.CollectionListItem>[] = [
     {
-      title: <FormattedMessage id="合集名称" defaultMessage="合集名称" />,
+      title: '合集名称',
       dataIndex: 'collectionName',
       // tip: 'The rule name is the unique key',
       render: (dom, entity) => {
@@ -154,19 +147,19 @@ const CollectionList: React.FC = () => {
       },
     },
     {
-      title: <FormattedMessage id="封面" defaultMessage="封面" />,
+      title: '封面',
       dataIndex: 'coverUrl',
       renderText: (val: string) => {
         return <Image src={val} width={60} />;
       },
     },
     {
-      title: <FormattedMessage id="合集概要" defaultMessage="合集概要" />,
+      title: '合集概要',
       dataIndex: 'summary',
       // valueType: 'textarea',
     },
     {
-      title: <FormattedMessage id="点赞数" defaultMessage="合集点赞数" />,
+      title: '点赞数',
       dataIndex: 'likeCount',
       sorter: true,
       hideInForm: true,
@@ -178,7 +171,16 @@ const CollectionList: React.FC = () => {
         val ?? '--',
     },
     {
-      title: <FormattedMessage id="合集创建时间" defaultMessage="合集创建时间" />,
+      title: '创建时间',
+      sorter: true,
+      dataIndex: 'createdTime',
+      valueType: 'dateTime',
+      renderFormItem: (item, { defaultRender }) => {
+        return defaultRender(item);
+      },
+    },
+    {
+      title: '更新时间',
       sorter: true,
       dataIndex: 'updatedTime',
       valueType: 'dateTime',
@@ -187,7 +189,7 @@ const CollectionList: React.FC = () => {
       },
     },
     {
-      title: <FormattedMessage id="操作" defaultMessage="操作" />,
+      title: '操作',
       dataIndex: 'option',
       valueType: 'option',
       render: (_, record) => [
@@ -202,17 +204,21 @@ const CollectionList: React.FC = () => {
           cancelText="否"
         >
           <a key="config" style={{ color: '#FF4D4F' }}>
-            <FormattedMessage id="删除" defaultMessage="删除" />
+            删除
           </a>
         </Popconfirm>,
         <a
           key="update"
-          onClick={() => {
-            handleUpdateModalOpen(true);
+          onClick={async () => {
+            await handleModalOpen(true);
             setCurrentRow(record);
+            modalFormRef.current?.setFieldsValue({
+              ...record,
+              coverUrl: [{ response: { data: { url: record.coverUrl } }, url: record.coverUrl }],
+            });
           }}
         >
-          <FormattedMessage id="更新" defaultMessage="更新" />
+          更新
         </a>,
       ],
     },
@@ -221,10 +227,7 @@ const CollectionList: React.FC = () => {
   return (
     <PageContainer>
       <ProTable<API.CollectionListItem, API.PageParams>
-        headerTitle={intl.formatMessage({
-          id: 'pages.searchTable.title',
-          defaultMessage: 'Enquiry form',
-        })}
+        headerTitle="知识合集列表"
         actionRef={actionRef}
         rowKey="_id"
         search={{
@@ -238,7 +241,7 @@ const CollectionList: React.FC = () => {
               handleModalOpen(true);
             }}
           >
-            <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
+            <PlusOutlined /> 新建
           </Button>,
         ]}
         // request={knowledgeList}
@@ -287,13 +290,24 @@ const CollectionList: React.FC = () => {
         </FooterToolbar>
       )}
       <ModalForm
-        title="新建合集"
+        title={`${currentRow ? '更新' : '新建'}合集`}
+        formRef={modalFormRef}
         layout="horizontal"
         width="500px"
         open={createModalOpen}
-        onOpenChange={handleModalOpen}
+        onOpenChange={(open) => {
+          if (!open && currentRow) {
+            // 每次关闭Modal 清空currentRow 避免在新建时 数据污染
+            setCurrentRow(undefined);
+            modalFormRef.current?.resetFields();
+          }
+          handleModalOpen(open);
+        }}
         onFinish={async (value) => {
-          const success = await handleAdd(value as API.CollectionListItem);
+          console.log('value', value, currentRow);
+          const success = !currentRow
+            ? await handleAdd(value as API.CollectionListItem)
+            : await handleUpdate({ ...value, _id: currentRow._id } as API.CollectionListItem);
           if (success) {
             handleModalOpen(false);
             if (actionRef.current) {
@@ -334,7 +348,7 @@ const CollectionList: React.FC = () => {
         />
         <ProFormTextArea label="合集概要" width="md" name="summary" />
       </ModalForm>
-      <UpdateForm
+      {/* <UpdateForm
         onSubmit={async (value) => {
           const success = await handleUpdate(value);
           if (success) {
@@ -353,7 +367,7 @@ const CollectionList: React.FC = () => {
         }}
         updateModalOpen={updateModalOpen}
         values={currentRow || {}}
-      />
+      /> */}
 
       <Drawer
         width={600}

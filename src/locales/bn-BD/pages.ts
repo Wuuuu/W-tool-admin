@@ -57,8 +57,6 @@ export default {
   'pages.searchTable.titleOption': 'অপশন',
   'pages.searchTable.config': 'কনফিগারেশন',
   'pages.searchTable.subscribeAlert': 'সতর্কতা সাবস্ক্রাইব করুন',
-  'pages.searchTable.title': 'ইনকয়েরি ফরম',
-  'pages.searchTable.new': 'নতুন',
   'pages.searchTable.chosen': 'নির্বাচিত',
   'pages.searchTable.item': 'আইটেম',
   'pages.searchTable.totalServiceCalls': 'পরিষেবা কলগুলির মোট সংখ্যা',

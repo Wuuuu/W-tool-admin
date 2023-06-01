@@ -56,8 +56,6 @@ export default {
   'pages.searchTable.titleOption': 'گزینه',
   'pages.searchTable.config': 'پیکربندی',
   'pages.searchTable.subscribeAlert': 'مشترک شدن در هشدارها',
-  'pages.searchTable.title': 'فرم درخواست',
-  'pages.searchTable.new': 'جدید',
   'pages.searchTable.chosen': 'انتخاب شده',
   'pages.searchTable.item': 'مورد',
   'pages.searchTable.totalServiceCalls': 'تعداد کل تماس های خدماتی',

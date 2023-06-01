@@ -59,8 +59,6 @@ export default {
   'pages.searchTable.titleOption': 'Opção',
   'pages.searchTable.config': 'Configuração',
   'pages.searchTable.subscribeAlert': 'Inscreva-se para receber alertas',
-  'pages.searchTable.title': 'Formulário de Consulta',
-  'pages.searchTable.new': 'Novo',
   'pages.searchTable.chosen': 'selecionado',
   'pages.searchTable.item': 'item',
   'pages.searchTable.totalServiceCalls': 'Número total de chamadas de serviço',

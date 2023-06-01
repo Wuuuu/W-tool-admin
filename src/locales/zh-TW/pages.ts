@@ -54,8 +54,6 @@ export default {
   'pages.searchTable.titleOption': '操作',
   'pages.searchTable.config': '配置',
   'pages.searchTable.subscribeAlert': '訂閱警報',
-  'pages.searchTable.title': '查詢表格',
-  'pages.searchTable.new': '新建',
   'pages.searchTable.chosen': '已選擇',
   'pages.searchTable.item': '項',
   'pages.searchTable.totalServiceCalls': '服務調用次數總計',
