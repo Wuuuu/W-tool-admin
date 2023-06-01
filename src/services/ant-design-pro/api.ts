@@ -61,19 +61,21 @@ export async function knowledgeList(
   });
 }
 
-/** 新建规则 PUT /api/rule */
+/** 新建合集 PUT /api/knowledge-category/create */
 export async function updateRule(options?: { [key: string]: any }) {
-  return request<API.CollectionListItem>('/api/rule', {
+  return request<API.CollectionListItem>('/api/knowledge-category/create', {
     method: 'PUT',
     ...(options || {}),
   });
 }
 
-/** 新建规则 POST /api/rule */
-export async function addRule(options?: { [key: string]: any }) {
-  return request<API.CollectionListItem>('/api/rule', {
+/** 新建合集 POST /api/knowledge-category/create */
+export async function addCollection(options?: { [key: string]: any }) {
+  console.log('options', options);
+  return request<API.CollectionListItem>('/api/knowledge-category/create', {
     method: 'POST',
-    ...(options || {}),
+    data: options || {},
+    // ...(options || {}),
   });
 }
 

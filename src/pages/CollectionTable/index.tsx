@@ -1,4 +1,9 @@
-import { addRule, removeRule, knowledgeList, updateRule } from '@/services/ant-design-pro/api';
+import {
+  addCollection,
+  removeRule,
+  knowledgeList,
+  updateRule,
+} from '@/services/ant-design-pro/api';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
 import {
@@ -9,6 +14,7 @@ import {
   ProFormText,
   ProFormTextArea,
   ProTable,
+  ProFormUploadButton,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl } from '@umijs/max';
 import { Button, Drawer, message } from 'antd';
@@ -22,15 +28,18 @@ import UpdateForm from './components/UpdateForm';
  * @param fields
  */
 const handleAdd = async (fields: API.CollectionListItem) => {
+  const { coverUrl, ...otherFields } = fields;
   const hide = message.loading('正在添加');
   try {
-    await addRule({ ...fields });
+    const params = { ...otherFields, coverUrl: coverUrl?.[0]?.response?.data?.url };
+    console.log('params', params);
+    await addCollection(params);
     hide();
-    message.success('Added successfully');
+    message.success('合集添加成功');
     return true;
   } catch (error) {
     hide();
-    message.error('Adding failed, please try again!');
+    message.error('添加失败，请重试!');
     return false;
   }
 };
@@ -45,9 +54,9 @@ const handleUpdate = async (fields: FormValueType) => {
   const hide = message.loading('Configuring');
   try {
     await updateRule({
-      name: fields.name,
-      desc: fields.desc,
-      key: fields.key,
+      name: fields.collectionName,
+      desc: fields.summary,
+      key: fields._id,
     });
     hide();
 
@@ -83,7 +92,7 @@ const handleRemove = async (selectedRows: API.CollectionListItem[]) => {
   }
 };
 
-const TableList: React.FC = () => {
+const CollectionList: React.FC = () => {
   /**
    * @en-US Pop-up window of new window
    * @zh-CN 新建窗口的弹窗
@@ -253,11 +262,9 @@ const TableList: React.FC = () => {
         </FooterToolbar>
       )}
       <ModalForm
-        title={intl.formatMessage({
-          id: 'pages.searchTable.createForm.newRule',
-          defaultMessage: 'New rule',
-        })}
-        width="400px"
+        title="新建合集"
+        layout="horizontal"
+        width="500px"
         open={createModalOpen}
         onOpenChange={handleModalOpen}
         onFinish={async (value) => {
@@ -274,18 +281,33 @@ const TableList: React.FC = () => {
           rules={[
             {
               required: true,
-              message: (
-                <FormattedMessage
-                  id="pages.searchTable.ruleName"
-                  defaultMessage="Rule name is required"
-                />
-              ),
+              message: '请输入合集名称',
             },
           ]}
+          label="合集名字"
           width="md"
-          name="name"
+          name="collectionName"
         />
-        <ProFormTextArea width="md" name="desc" />
+        <ProFormUploadButton
+          accept=".png, .jpg, .jpeg"
+          name="coverUrl"
+          label="封面上传"
+          rules={[
+            {
+              required: true,
+              message: '请上传封面名称',
+            },
+          ]}
+          max={1}
+          fieldProps={{
+            name: 'file',
+            listType: 'picture-card',
+            withCredentials: true,
+            headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` || '' },
+          }}
+          action="/api/upload/cosUpload"
+        />
+        <ProFormTextArea label="合集概要" width="md" name="summary" />
       </ModalForm>
       <UpdateForm
         onSubmit={async (value) => {
@@ -335,4 +357,4 @@ const TableList: React.FC = () => {
   );
 };
 
-export default TableList;
+export default CollectionList;

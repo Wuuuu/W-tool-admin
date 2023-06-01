@@ -43,7 +43,8 @@ declare namespace API {
 
   type CollectionListItem = {
     _id: string;
-    collectionName?: string;
+    coverUrl: any;
+    collectionName: string;
     summary?: string;
     likeCount?: number;
     updatedTime?: string;
