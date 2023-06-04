@@ -21,7 +21,7 @@ import {
   ProTable,
   ProFormUploadButton,
 } from '@ant-design/pro-components';
-import { FormattedMessage } from '@umijs/max';
+import { FormattedMessage, Link } from '@umijs/max';
 import { Button, Drawer, Image, message, Popconfirm } from 'antd';
 import React, { useRef, useState } from 'react';
 // import type { FormValueType } from './components/UpdateForm';
@@ -96,12 +96,9 @@ const handleRemove = async (selectedRows: API.CollectionListItem[]) => {
   }
 };
 
-const CollectionList: React.FC = () => {
+const CollectionTable: React.FC = () => {
   const modalFormRef = useRef<ProFormInstance>();
-  /**
-   * @en-US Pop-up window of new window
-   * @zh-CN 新建窗口的弹窗
-   *  */
+
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
   const [confirmLoading, setConfirmLoading] = useState<boolean>(false);
 
@@ -220,6 +217,9 @@ const CollectionList: React.FC = () => {
         >
           更新
         </a>,
+        <Link key="detail" to={`/collection/sub-knowledgeCategory/${record._id}`}>
+          查看
+        </Link>,
       ],
     },
   ];
@@ -396,4 +396,4 @@ const CollectionList: React.FC = () => {
   );
 };
 
-export default CollectionList;
+export default CollectionTable;

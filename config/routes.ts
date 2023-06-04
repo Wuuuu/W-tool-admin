@@ -46,10 +46,26 @@ export default [
     ],
   },
   {
-    name: 'list.table-list',
-    icon: 'table',
-    path: '/collection-list',
-    component: './CollectionTable',
+    name: 'collection',
+    icon: 'profileTwoTone',
+    path: '/collection',
+    routes: [
+      {
+        path: '/collection',
+        redirect: '/collection/list',
+      },
+      {
+        path: '/collection/list',
+        name: 'category-list',
+        component: './CollectionTable',
+      },
+      {
+        path: '/collection/sub-knowledgeCategory/:categoryId',
+        name: 'subCategory-list',
+        component: './SubCollectionList',
+        hideInMenu: true,
+      },
+    ],
   },
   {
     path: '/',
