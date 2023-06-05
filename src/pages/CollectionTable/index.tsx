@@ -304,7 +304,6 @@ const CollectionTable: React.FC = () => {
           handleModalOpen(open);
         }}
         onFinish={async (value) => {
-          console.log('value', value, currentRow);
           const success = !currentRow
             ? await handleAdd(value as API.CollectionListItem)
             : await handleUpdate({ ...value, _id: currentRow._id } as API.CollectionListItem);

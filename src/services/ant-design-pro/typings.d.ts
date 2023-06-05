@@ -58,9 +58,20 @@ declare namespace API {
     success?: boolean;
   };
 
-  type FakeCaptcha = {
+  type SubCategory = {
+    data: SubCategoryItem[];
     code?: number;
     status?: string;
+    message?: string;
+  };
+
+  type SubCategoryItem = {
+    _id: string;
+    subCategoryName: string;
+    categoryId: string;
+    list?: any[];
+    createdTime?: string;
+    updatedTime?: string;
   };
 
   type LoginParams = {

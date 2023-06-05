@@ -84,7 +84,7 @@ const LoginMessage: React.FC<{
 };
 
 const Login: React.FC = () => {
-  const [userLoginState, setUserLoginState] = useState<API.LoginResult>({});
+  const [userLoginState, setUserLoginState] = useState<API.LoginResult>();
   const [type, setType] = useState<string>('account');
   const { initialState, setInitialState } = useModel('@@initialState');
 
@@ -127,6 +127,10 @@ const Login: React.FC = () => {
         localStorage.setItem('access_token', msg.data.access_token);
         await fetchUserInfo();
         const urlParams = new URL(window.location.href).searchParams;
+        /*
+         * urlParams.get('redirect') 当用户过期 跳转登录页面时会拼接redirect参数
+         *保存当时的页面地址，在重新登录后 重定向回去
+         */
         history.push(urlParams.get('redirect') || '/');
         return;
       }
@@ -140,7 +144,7 @@ const Login: React.FC = () => {
       message.error(defaultLoginFailureMessage);
     }
   };
-  const { status, type: loginType } = userLoginState;
+  const { status, type: loginType } = userLoginState || {};
 
   return (
     <div className={containerClassName}>
