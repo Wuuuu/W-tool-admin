@@ -1,6 +1,7 @@
 import {
   getSubCategory,
   addSubCategory,
+  addSubCategoryContent,
   removeSubCategory,
 } from '@/services/ant-design-pro/subCollectionList';
 import { useEffect, useState } from 'react';
@@ -11,6 +12,8 @@ import { useParams } from '@umijs/max';
 import EmptyPage from '@/components/Empty';
 import AddSubCategoryModal from './components/AddModal';
 import { ExclamationCircleFilled } from '@ant-design/icons';
+import ReactMarkdown from 'react-markdown';
+import AddContentModal from './components/AddContentModal';
 
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
 const { confirm } = Modal;
@@ -19,6 +22,7 @@ const SubCollectionList = () => {
   const { categoryId } = useParams();
   // 添加子类别 弹窗状态字段
   const [createModalOpen, setCreateModalOpen] = useState<boolean>(false);
+  const [createContentModalOpen, setCreateContentModalOpen] = useState<boolean>(false);
   const [subCategoryData, setSubCategoryData] = useState<API.SubCategoryItem[]>();
 
   const handleRefresh = () => {
@@ -29,11 +33,15 @@ const SubCollectionList = () => {
     });
   };
 
-  // 新增子类别数据
-  const handleAddSubCategory = async (value: Record<string, any>) => {
+  // 新增子类别/内容数据
+  const handleAdd = async (type: string, value: Record<string, any>) => {
+    const typeMap = new Map([
+      ['subCategroy', () => addSubCategory({ ...value, categoryId })],
+      ['subCategroyContent', () => addSubCategoryContent({ ...value, categoryId })],
+    ]);
     const hide = message.loading('正在添加');
     try {
-      await addSubCategory({ ...value, categoryId });
+      await typeMap.get(type)?.();
       hide();
       setCreateModalOpen(false);
       message.success('合集子类别添加成功');
@@ -46,6 +54,12 @@ const SubCollectionList = () => {
   // 删除子类别数据
   const handleDelSubCategory = async (currentId: string) => {
     const hide = message.loading('正在删除');
+    console.log(subCategoryData, currentId);
+    const { list } = subCategoryData?.find((item) => item._id === currentId) || {};
+    if (list?.length) {
+      message.warning('删除前，请清空子类别的内～');
+      return false;
+    }
     try {
       await removeSubCategory(currentId);
       hide();
@@ -106,9 +120,12 @@ const SubCollectionList = () => {
           />
         ) : (
           <>
-            <div style={{ marginBottom: 16 }}>
+            <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
               <Button type="primary" onClick={() => setCreateModalOpen(true)}>
                 新增子类别
+              </Button>
+              <Button type="primary" onClick={() => setCreateModalOpen(true)}>
+                新增内容
               </Button>
             </div>
             <Tabs
@@ -119,11 +136,11 @@ const SubCollectionList = () => {
               style={{ height: 'calc(100vh - 220px)' }}
               size="large"
               onEdit={onEdit}
-              items={subCategoryData?.map(({ subCategoryName, _id }) => {
+              items={subCategoryData?.map(({ subCategoryName, _id, content }) => {
                 return {
                   label: subCategoryName,
                   key: _id,
-                  children: `Content of Tab Pane ${_id}`,
+                  children: <ReactMarkdown>{content}</ReactMarkdown>,
                 };
               })}
             />
@@ -132,9 +149,14 @@ const SubCollectionList = () => {
       </Card>
       <AddSubCategoryModal
         visible={createModalOpen}
-        onOk={handleAddSubCategory}
+        onOk={(value) => handleAdd('subCategroy', value)}
         onOpenChange={(open: boolean) => setCreateModalOpen(open)}
         // onCancel={() => setCreateModalOpen(false)}
+      />
+      <AddContentModal
+        visible={createContentModalOpen}
+        onOk={(value) => handleAdd('subCategroyContent', value)}
+        onOpenChange={(open: boolean) => setCreateContentModalOpen(open)}
       />
     </PageContainer>
   );

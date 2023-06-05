@@ -70,6 +70,7 @@ declare namespace API {
     subCategoryName: string;
     categoryId: string;
     list?: any[];
+    content?: string;
     createdTime?: string;
     updatedTime?: string;
   };
