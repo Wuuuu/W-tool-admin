@@ -141,7 +141,7 @@ const SubCollectionList = () => {
               activeKey={activeKey}
               onChange={(activeKey) => setActiveKey(activeKey)}
               hideAdd
-              style={{ height: 'calc(100vh - 220px)' }}
+              // style={{ height: 'calc(100vh - 220px)' }}
               size="large"
               onEdit={onEdit}
               items={subCategoryData?.map(({ subCategoryName, _id, list }) => {

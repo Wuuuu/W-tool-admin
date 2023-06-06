@@ -1,8 +1,8 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { LikeOutlined, MessageOutlined, StarOutlined } from '@ant-design/icons';
 import { List, Space, Anchor } from 'antd';
-import rehypeHighlight from 'rehype-highlight';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 
 import styles from './questionCard.less';
 
@@ -23,14 +23,13 @@ const IconText = ({ icon, text }: { icon: React.FC; text: string }) => (
 );
 
 const QuestionCard: React.FC<QuestionCardProps> = ({ data }) => {
-  const listDomRef = useRef<any>();
   const anchorList = data?.map((item, index) => ({
     key: item.title,
     href: `#${item.title}`,
     title: `${index + 1} ${item.title}`,
   }));
   return (
-    <div className={styles.questionCardWarpper} ref={listDomRef}>
+    <div className={styles.questionCardWarpper}>
       <List
         className={styles.questionCardList}
         itemLayout="vertical"
@@ -64,19 +63,33 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ data }) => {
               title={<ReactMarkdown>{`${index + 1}.${item.title}`}</ReactMarkdown>}
               // description={item.description}
             />
-            <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{item.content}</ReactMarkdown>
+            <ReactMarkdown
+              // eslint-disable-next-line react/no-children-prop
+              children={item.content}
+              components={{
+                code({ inline, className, children, ...props }) {
+                  const match = /language-(\w+)/.exec(className || '');
+                  return !inline && match ? (
+                    <SyntaxHighlighter
+                      {...props}
+                      // eslint-disable-next-line react/no-children-prop
+                      children={String(children).replace(/\n$/, '')}
+                      // style={dark}
+                      language={match[1]}
+                      PreTag="div"
+                    />
+                  ) : (
+                    <code {...props} className={className}>
+                      {children}
+                    </code>
+                  );
+                },
+              }}
+            />
           </List.Item>
         )}
       />
-      {/* <Affix offsetTop={10}> */}
-      <Anchor
-        className={styles.questionCardAnchor}
-        getContainer={() => {
-          return listDomRef.current;
-        }}
-        items={anchorList}
-      />
-      {/* </Affix> */}
+      <Anchor offsetTop={65} className={styles.questionCardAnchor} items={anchorList} />
     </div>
   );
 };
