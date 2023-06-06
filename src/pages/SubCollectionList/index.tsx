@@ -12,14 +12,18 @@ import { useParams } from '@umijs/max';
 import EmptyPage from '@/components/Empty';
 import AddSubCategoryModal from './components/AddModal';
 import { ExclamationCircleFilled } from '@ant-design/icons';
-import ReactMarkdown from 'react-markdown';
 import AddContentModal from './components/AddContentModal';
+import QuestionCard from './components/QuestionCard';
+
+import styles from './index.less';
 
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
 const { confirm } = Modal;
 
 const SubCollectionList = () => {
   const { categoryId } = useParams();
+  const [activeKey, setActiveKey] = useState<string>();
+
   // 添加子类别 弹窗状态字段
   const [createModalOpen, setCreateModalOpen] = useState<boolean>(false);
   const [createContentModalOpen, setCreateContentModalOpen] = useState<boolean>(false);
@@ -37,13 +41,14 @@ const SubCollectionList = () => {
   const handleAdd = async (type: string, value: Record<string, any>) => {
     const typeMap = new Map([
       ['subCategroy', () => addSubCategory({ ...value, categoryId })],
-      ['subCategroyContent', () => addSubCategoryContent({ ...value, categoryId })],
+      ['subCategroyContent', () => addSubCategoryContent({ ...value, subCategoryId: activeKey })],
     ]);
     const hide = message.loading('正在添加');
     try {
       await typeMap.get(type)?.();
       hide();
       setCreateModalOpen(false);
+      setCreateContentModalOpen(false);
       message.success('合集子类别添加成功');
       handleRefresh();
     } catch (error) {
@@ -124,23 +129,26 @@ const SubCollectionList = () => {
               <Button type="primary" onClick={() => setCreateModalOpen(true)}>
                 新增子类别
               </Button>
-              <Button type="primary" onClick={() => setCreateModalOpen(true)}>
+              <Button type="primary" onClick={() => setCreateContentModalOpen(true)}>
                 新增内容
               </Button>
             </div>
             <Tabs
               type="editable-card"
               // onChange={onChange}
+              className={styles.questionsTab}
               tabPosition="left"
+              activeKey={activeKey}
+              onChange={(activeKey) => setActiveKey(activeKey)}
               hideAdd
               style={{ height: 'calc(100vh - 220px)' }}
               size="large"
               onEdit={onEdit}
-              items={subCategoryData?.map(({ subCategoryName, _id, content }) => {
+              items={subCategoryData?.map(({ subCategoryName, _id, list }) => {
                 return {
                   label: subCategoryName,
                   key: _id,
-                  children: <ReactMarkdown>{content}</ReactMarkdown>,
+                  children: <QuestionCard data={list} />,
                 };
               })}
             />

@@ -17,7 +17,7 @@ export async function addSubCategory(options?: { [key: string]: any }) {
 
 /** 新建合集子类别内容 POST /api/knowledge-subCategory/create */
 export async function addSubCategoryContent(options?: { [key: string]: any }) {
-  return request<Record<string, any>>('/api/knowledge-subCategory/create', {
+  return request<Record<string, any>>('/api/knowledge-subCategory/create-content', {
     method: 'POST',
     data: options || {},
   });

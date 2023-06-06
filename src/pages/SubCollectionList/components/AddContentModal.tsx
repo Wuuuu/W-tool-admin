@@ -27,16 +27,17 @@ const AddSubCategoryContentModal: React.FC<AddSubCategoryContentModalProps> = ({
         rules={[
           {
             required: true,
-            message: '请输入内容标题',
+            message: '请输入标题',
           },
         ]}
-        label="内容标题"
-        width="md"
+        label="标题"
+        width="lg"
         name="title"
       />
       <ProFormTextArea
         name="content"
         label="内容"
+        width="lg"
         rules={[
           {
             required: true,

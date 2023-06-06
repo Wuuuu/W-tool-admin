@@ -1,0 +1,17 @@
+.questionCardWarpper {
+  display: flex;
+  .questionCardList {
+    flex: 1;
+    max-width: 100%;
+  }
+  .questionCardAnchor {
+    width: 180px;
+    :global {
+      .ant-anchor-link {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+  }
+}
