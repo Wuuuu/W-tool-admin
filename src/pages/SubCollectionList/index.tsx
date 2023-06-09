@@ -1,7 +1,7 @@
 import {
   getSubCategory,
   addSubCategory,
-  addSubCategoryContent,
+  addQuestionContent,
   removeSubCategory,
 } from '@/services/ant-design-pro/subCollectionList';
 import { useEffect, useState } from 'react';
@@ -16,6 +16,7 @@ import AddContentModal from './components/AddContentModal';
 import QuestionCard from './components/QuestionCard';
 
 import styles from './index.less';
+// import isEmpty from 'lodash/isEmpty';
 
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
 const { confirm } = Modal;
@@ -27,11 +28,16 @@ const SubCollectionList = () => {
   // 添加子类别 弹窗状态字段
   const [createModalOpen, setCreateModalOpen] = useState<boolean>(false);
   const [createContentModalOpen, setCreateContentModalOpen] = useState<boolean>(false);
-  const [subCategoryData, setSubCategoryData] = useState<API.SubCategoryItem[]>();
+  const [subCategoryData, setSubCategoryData] = useState<API.SubCategoryItem[]>([]);
 
   const handleRefresh = () => {
     getSubCategory({ categoryId }).then(({ data, code }) => {
       if (data && code === 200) {
+        // console.log('onRefresh--activeKey', data, activeKey);
+        // // 判断删除的是否为当前的activeKey,如果是则给
+        // const hasDeletedCurrentData = data.find((item) => item?.subCategoryId === activeKey);
+        // if (isEmpty(hasDeletedCurrentData)) {
+        // }
         setSubCategoryData(data);
       }
     });
@@ -41,7 +47,7 @@ const SubCollectionList = () => {
   const handleAdd = async (type: string, value: Record<string, any>) => {
     const typeMap = new Map([
       ['subCategroy', () => addSubCategory({ ...value, categoryId })],
-      ['subCategroyContent', () => addSubCategoryContent({ ...value, subCategoryId: activeKey })],
+      ['subCategroyContent', () => addQuestionContent({ ...value, subCategoryId: activeKey })],
     ]);
     const hide = message.loading('正在添加');
     try {
@@ -56,20 +62,36 @@ const SubCollectionList = () => {
     }
   };
 
-  // 删除子类别数据
-  const handleDelSubCategory = async (currentId: string) => {
-    const hide = message.loading('正在删除');
-    console.log(subCategoryData, currentId);
-    const { list } = subCategoryData?.find((item) => item._id === currentId) || {};
-    if (list?.length) {
-      message.warning('删除前，请清空子类别的内～');
-      return false;
-    }
+  const updateDataAndActiveKey = async (targetKey: string) => {
+    let newActiveKey = activeKey;
+    let lastIndex = -1;
+    subCategoryData.forEach((item, i) => {
+      if (item.subCategoryId === targetKey) {
+        lastIndex = i - 1;
+      }
+    });
     try {
-      await removeSubCategory(currentId);
+      const { data } = await getSubCategory({ categoryId });
+      if (data.length && newActiveKey === targetKey) {
+        if (lastIndex >= 0) {
+          newActiveKey = data[lastIndex].subCategoryId;
+        } else {
+          newActiveKey = data[0].subCategoryId;
+        }
+      }
+      setActiveKey(newActiveKey);
+      setSubCategoryData(data);
+    } catch (error) {}
+  };
+
+  // 删除子类别数据
+  const handleDelSubCategory = async (targetSubCategoryId: string) => {
+    const hide = message.loading('正在删除');
+    try {
+      await removeSubCategory(targetSubCategoryId);
       hide();
       message.success('合集子类别删除成功');
-      handleRefresh();
+      await updateDataAndActiveKey(targetSubCategoryId);
     } catch (error) {
       hide();
     }
@@ -81,10 +103,12 @@ const SubCollectionList = () => {
       icon: <ExclamationCircleFilled />,
       content: '在删除之前，请确保子类别的数据为空',
       onOk() {
-        handleDelSubCategory(String(targetKey));
-        // return new Promise((resolve, reject) => {
-        //   setTimeout(Math.random() > 0.5 ? resolve : reject, 1000);
-        // }).catch(() => console.log('Oops errors!'));
+        const { list } = subCategoryData?.find((item) => item.categoryId === targetKey) || {};
+        if (list?.length) {
+          message.warning('问答内容不为空，请清空后重试!');
+          return false;
+        }
+        return handleDelSubCategory(String(targetKey));
       },
       onCancel() {},
     });
@@ -92,7 +116,6 @@ const SubCollectionList = () => {
 
   const onEdit = (targetKey: TargetKey, action: 'add' | 'remove') => {
     console.log(targetKey);
-    console.log('action', action);
     if (action === 'add') {
       // add();
     } else {
@@ -105,6 +128,8 @@ const SubCollectionList = () => {
     getSubCategory({ categoryId }).then(({ data, code }) => {
       if (data && code === 200) {
         setSubCategoryData(data);
+        // 手动设置初始的activeKey，避免在添加问答项时，拿不到subCategoryId
+        setActiveKey(data?.[0]?.subCategoryId);
       }
     });
   }, []);
@@ -139,15 +164,17 @@ const SubCollectionList = () => {
               className={styles.questionsTab}
               tabPosition="left"
               activeKey={activeKey}
-              onChange={(activeKey) => setActiveKey(activeKey)}
+              onChange={(activeKey) => {
+                console.log(activeKey);
+                setActiveKey(activeKey);
+              }}
               hideAdd
-              // style={{ height: 'calc(100vh - 220px)' }}
               size="large"
               onEdit={onEdit}
-              items={subCategoryData?.map(({ subCategoryName, _id, list }) => {
+              items={subCategoryData?.map(({ subCategoryName, subCategoryId, list }) => {
                 return {
                   label: subCategoryName,
-                  key: _id,
+                  key: subCategoryId,
                   children: <QuestionCard data={list} />,
                 };
               })}

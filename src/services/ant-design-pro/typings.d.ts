@@ -67,6 +67,7 @@ declare namespace API {
 
   type SubCategoryItem = {
     _id: string;
+    subCategoryId: string;
     subCategoryName: string;
     categoryId: string;
     list?: any[];

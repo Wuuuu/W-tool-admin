@@ -15,17 +15,17 @@ export async function addSubCategory(options?: { [key: string]: any }) {
   });
 }
 
-/** 新建合集子类别内容 POST /api/knowledge-subCategory/create */
-export async function addSubCategoryContent(options?: { [key: string]: any }) {
-  return request<Record<string, any>>('/api/knowledge-subCategory/create-content', {
+/** 新建合集子类别问答列表内容 POST /api/subCategory-list/create */
+export async function addQuestionContent(options?: { [key: string]: any }) {
+  return request<Record<string, any>>('/api/subCategory-list/create', {
     method: 'POST',
     data: options || {},
   });
 }
 
 /** 删除合集子类别 DELETE /api/knowledge-category/delete */
-export async function removeSubCategory(_id?: string) {
-  return request<Record<string, any>>(`/api/knowledge-subCategory/${_id}`, {
+export async function removeSubCategory(currentSubCategoryId?: string) {
+  return request<Record<string, any>>(`/api/knowledge-subCategory/${currentSubCategoryId}`, {
     method: 'DELETE',
   });
 }

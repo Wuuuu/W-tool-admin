@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { LikeOutlined, MessageOutlined, StarOutlined } from '@ant-design/icons';
-import { List, Space, Anchor } from 'antd';
+import { List, Space, Anchor, Button } from 'antd';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 
 import styles from './questionCard.less';
@@ -21,6 +21,19 @@ const IconText = ({ icon, text }: { icon: React.FC; text: string }) => (
     {text}
   </Space>
 );
+
+const ExtraActions = () => {
+  return (
+    <div>
+      <Button type="primary" block style={{ marginBottom: 16 }}>
+        更新
+      </Button>
+      <Button danger block>
+        删除
+      </Button>
+    </div>
+  );
+};
 
 const QuestionCard: React.FC<QuestionCardProps> = ({ data }) => {
   const anchorList = data?.map((item, index) => ({
@@ -50,13 +63,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ data }) => {
               <IconText icon={LikeOutlined} text="156" key="list-vertical-like-o" />,
               <IconText icon={MessageOutlined} text="2" key="list-vertical-message" />,
             ]}
-            // extra={
-            //   <img
-            //     width={272}
-            //     alt="logo"
-            //     src="https://gw.alipayobjects.com/zos/rmsportal/mqaQswcyDLcXyDKnZfES.png"
-            //   />
-            // }
+            extra={<ExtraActions />}
           >
             <List.Item.Meta
               // avatar={<Avatar src={item.avatar} />}
