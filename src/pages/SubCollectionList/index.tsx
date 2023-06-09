@@ -3,8 +3,9 @@ import {
   addSubCategory,
   addQuestionContent,
   removeSubCategory,
+  updateQuestionContent,
 } from '@/services/ant-design-pro/subCollectionList';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PageContainer } from '@ant-design/pro-components';
 
 import { Button, Card, Modal, Tabs, message } from 'antd';
@@ -13,7 +14,7 @@ import EmptyPage from '@/components/Empty';
 import AddSubCategoryModal from './components/AddModal';
 import { ExclamationCircleFilled } from '@ant-design/icons';
 import AddContentModal from './components/AddContentModal';
-import QuestionCard from './components/QuestionCard';
+import QuestionCard, { QuestionCardItemProps } from './components/QuestionCard';
 
 import styles from './index.less';
 // import isEmpty from 'lodash/isEmpty';
@@ -23,7 +24,12 @@ const { confirm } = Modal;
 
 const SubCollectionList = () => {
   const { categoryId } = useParams();
+  const contentModalRef = useRef<any>();
+
   const [activeKey, setActiveKey] = useState<string>();
+
+  // contentModal状态；默认: add 可选值 'add' | 'update'
+  const [contentModalType, setContentModalType] = useState<'add' | 'update'>('add');
 
   // 添加子类别 弹窗状态字段
   const [createModalOpen, setCreateModalOpen] = useState<boolean>(false);
@@ -33,32 +39,59 @@ const SubCollectionList = () => {
   const handleRefresh = () => {
     getSubCategory({ categoryId }).then(({ data, code }) => {
       if (data && code === 200) {
-        // console.log('onRefresh--activeKey', data, activeKey);
-        // // 判断删除的是否为当前的activeKey,如果是则给
-        // const hasDeletedCurrentData = data.find((item) => item?.subCategoryId === activeKey);
-        // if (isEmpty(hasDeletedCurrentData)) {
-        // }
         setSubCategoryData(data);
       }
     });
   };
 
   // 新增子类别/内容数据
-  const handleAdd = async (type: string, value: Record<string, any>) => {
+  const handleAdd = async (type: string, values: Record<string, any>) => {
     const typeMap = new Map([
-      ['subCategroy', () => addSubCategory({ ...value, categoryId })],
-      ['subCategroyContent', () => addQuestionContent({ ...value, subCategoryId: activeKey })],
+      [
+        'subCategroy',
+        async () => {
+          await addSubCategory({ ...values, categoryId });
+          message.success('合集子类别添加成功');
+          setCreateModalOpen(false);
+        },
+      ],
+      [
+        'subCategroyContent-add',
+        async () => {
+          await addQuestionContent({ ...values, subCategoryId: activeKey });
+          message.success('问答内容添加成功');
+          setCreateContentModalOpen(false);
+        },
+      ],
+      [
+        'subCategroyContent-update',
+        async () => {
+          await updateQuestionContent(values);
+          setCreateContentModalOpen(false);
+          message.success('问答内容更新成功');
+        },
+      ],
     ]);
     const hide = message.loading('正在添加');
     try {
       await typeMap.get(type)?.();
-      hide();
-      setCreateModalOpen(false);
-      setCreateContentModalOpen(false);
-      message.success('合集子类别添加成功');
-      handleRefresh();
+      await handleRefresh();
     } catch (error) {
+      console.log('err', error);
+    } finally {
       hide();
+    }
+  };
+
+  const onOpenContentModal = (type: 'add' | 'update') => {
+    setContentModalType(type);
+    setCreateContentModalOpen(true);
+  };
+
+  const onUpdateContentModal = async (type: 'add' | 'update', values?: QuestionCardItemProps) => {
+    await onOpenContentModal(type);
+    if (type === 'update') {
+      await contentModalRef?.current?.onFill(values);
     }
   };
 
@@ -154,20 +187,16 @@ const SubCollectionList = () => {
               <Button type="primary" onClick={() => setCreateModalOpen(true)}>
                 新增子类别
               </Button>
-              <Button type="primary" onClick={() => setCreateContentModalOpen(true)}>
+              <Button type="primary" onClick={() => onUpdateContentModal('add')}>
                 新增内容
               </Button>
             </div>
             <Tabs
               type="editable-card"
-              // onChange={onChange}
               className={styles.questionsTab}
               tabPosition="left"
               activeKey={activeKey}
-              onChange={(activeKey) => {
-                console.log(activeKey);
-                setActiveKey(activeKey);
-              }}
+              onChange={(activeKey) => setActiveKey(activeKey)}
               hideAdd
               size="large"
               onEdit={onEdit}
@@ -175,7 +204,19 @@ const SubCollectionList = () => {
                 return {
                   label: subCategoryName,
                   key: subCategoryId,
-                  children: <QuestionCard data={list} />,
+                  children: (
+                    <>
+                      {list && list?.length ? (
+                        <QuestionCard data={list} onOpenContentModal={onUpdateContentModal} />
+                      ) : (
+                        <EmptyPage
+                          imageStyle={{ height: 280 }}
+                          buttonText="新增问题内容"
+                          buttonClick={() => onUpdateContentModal('add')}
+                        />
+                      )}
+                    </>
+                  ),
                 };
               })}
             />
@@ -186,11 +227,12 @@ const SubCollectionList = () => {
         visible={createModalOpen}
         onOk={(value) => handleAdd('subCategroy', value)}
         onOpenChange={(open: boolean) => setCreateModalOpen(open)}
-        // onCancel={() => setCreateModalOpen(false)}
       />
       <AddContentModal
+        type={contentModalType}
+        ref={contentModalRef}
         visible={createContentModalOpen}
-        onOk={(value) => handleAdd('subCategroyContent', value)}
+        onOk={(value) => handleAdd(`subCategroyContent-${contentModalType}`, value)}
         onOpenChange={(open: boolean) => setCreateContentModalOpen(open)}
       />
     </PageContainer>

@@ -61,7 +61,7 @@ export async function knowledgeList(
   });
 }
 
-/** 新建合集 PUT /api/knowledge-category/update */
+/** 更新合集 PATCH /api/knowledge-category/update */
 export async function updateCollection(options?: { [key: string]: any }) {
   return request<Record<string, any>>(`/api/knowledge-category/update/${options?.id}`, {
     method: 'PATCH',

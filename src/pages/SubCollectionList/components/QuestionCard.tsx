@@ -6,13 +6,15 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 
 import styles from './questionCard.less';
 
-type QuestionCardItem = {
+export type QuestionCardItemProps = {
   title: string;
   content: string;
   likeCount?: number;
 };
+
 type QuestionCardProps = {
-  data?: QuestionCardItem[];
+  data?: QuestionCardItemProps[];
+  onOpenContentModal: (type: 'update', values: QuestionCardItemProps) => void;
 };
 
 const IconText = ({ icon, text }: { icon: React.FC; text: string }) => (
@@ -22,20 +24,7 @@ const IconText = ({ icon, text }: { icon: React.FC; text: string }) => (
   </Space>
 );
 
-const ExtraActions = () => {
-  return (
-    <div>
-      <Button type="primary" block style={{ marginBottom: 16 }}>
-        更新
-      </Button>
-      <Button danger block>
-        删除
-      </Button>
-    </div>
-  );
-};
-
-const QuestionCard: React.FC<QuestionCardProps> = ({ data }) => {
+const QuestionCard: React.FC<QuestionCardProps> = ({ data, onOpenContentModal }) => {
   const anchorList = data?.map((item, index) => ({
     key: item.title,
     href: `#${item.title}`,
@@ -59,17 +48,24 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ data }) => {
             id={item.title}
             key={item.title}
             actions={[
-              <IconText icon={StarOutlined} text="156" key="list-vertical-star-o" />,
+              <IconText icon={StarOutlined} text="999" key="list-vertical-star-o" />,
               <IconText icon={LikeOutlined} text="156" key="list-vertical-like-o" />,
               <IconText icon={MessageOutlined} text="2" key="list-vertical-message" />,
             ]}
-            extra={<ExtraActions />}
+            extra={
+              <>
+                <Button
+                  type="primary"
+                  style={{ marginBottom: 16, display: 'block' }}
+                  onClick={() => onOpenContentModal('update', item)}
+                >
+                  更新
+                </Button>
+                <Button danger>删除</Button>
+              </>
+            }
           >
-            <List.Item.Meta
-              // avatar={<Avatar src={item.avatar} />}
-              title={<ReactMarkdown>{`${index + 1}.${item.title}`}</ReactMarkdown>}
-              // description={item.description}
-            />
+            <List.Item.Meta title={<ReactMarkdown>{`${index + 1}.${item.title}`}</ReactMarkdown>} />
             <ReactMarkdown
               // eslint-disable-next-line react/no-children-prop
               children={item.content}
