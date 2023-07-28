@@ -4,6 +4,7 @@ import {
   knowledgeList,
   updateCollection,
 } from '@/services/ant-design-pro/api';
+import { getCollectionTypeList } from '@/services/collection/collectionType';
 import { PlusOutlined } from '@ant-design/icons';
 import type {
   ActionType,
@@ -17,11 +18,12 @@ import {
   PageContainer,
   ProDescriptions,
   ProFormText,
+  ProFormSelect,
   ProFormTextArea,
   ProTable,
   ProFormUploadButton,
 } from '@ant-design/pro-components';
-import { FormattedMessage, Link } from '@umijs/max';
+import { FormattedMessage, Link, useRequest } from '@umijs/max';
 import { Button, Drawer, Image, message, Popconfirm } from 'antd';
 import React, { useRef, useState } from 'react';
 // import type { FormValueType } from './components/UpdateForm';
@@ -108,6 +110,9 @@ const CollectionTable: React.FC = () => {
   const [currentRow, setCurrentRow] = useState<API.CollectionListItem>();
   const [selectedRowsState, setSelectedRows] = useState<API.CollectionListItem[]>([]);
 
+  const { data: collectionTypeList, loading } = useRequest(getCollectionTypeList, {
+    cacheKey: 'collectionTypeList',
+  });
   const handleOk = async (
     e: React.MouseEvent<HTMLElement> | undefined,
     row: API.CollectionListItem,
@@ -142,6 +147,10 @@ const CollectionTable: React.FC = () => {
           </a>
         );
       },
+    },
+    {
+      title: '合集类型',
+      dataIndex: 'collectionType',
     },
     {
       title: '封面',
@@ -311,6 +320,8 @@ const CollectionTable: React.FC = () => {
             handleModalOpen(false);
             if (actionRef.current) {
               actionRef.current.reload();
+              // 数据创建完成时，清空表单数据
+              modalFormRef.current?.resetFields();
             }
           }
         }}
@@ -325,6 +336,19 @@ const CollectionTable: React.FC = () => {
           label="合集名字"
           width="md"
           name="collectionName"
+        />
+        <ProFormSelect
+          disabled={loading}
+          rules={[
+            {
+              required: true,
+              message: '请选择合集类型',
+            },
+          ]}
+          options={collectionTypeList || []}
+          width="md"
+          name="collectionType"
+          label="合集类型"
         />
         <ProFormUploadButton
           accept=".png, .jpg, .jpeg"

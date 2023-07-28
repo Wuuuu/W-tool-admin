@@ -4,7 +4,7 @@ import {
   addQuestionContent,
   removeSubCategory,
   updateQuestionContent,
-} from '@/services/ant-design-pro/subCollectionList';
+} from '@/services/collection/subCollectionList';
 import { useEffect, useRef, useState } from 'react';
 import { PageContainer } from '@ant-design/pro-components';
 

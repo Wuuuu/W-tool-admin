@@ -52,7 +52,7 @@ export async function knowledgeList(
   },
   options?: { [key: string]: any },
 ) {
-  return request<API.CollectionList>('/api/knowledge-category/list', {
+  return request<API.CollectionList>('/api/knowledge-category/list-page', {
     method: 'GET',
     params: {
       ...params,
