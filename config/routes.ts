@@ -68,6 +68,28 @@ export default [
     ],
   },
   {
+    name: 'intl-config',
+    icon: 'form',
+    path: '/intl-config',
+    routes: [
+      {
+        path: '/intl-config',
+        redirect: '/intl-config/project-list',
+      },
+      {
+        path: '/intl-config/project-list',
+        name: 'project-list',
+        component: './IntlConfig',
+      },
+      {
+        path: '/intl-config/project-detail/:id',
+        name: 'project-detail',
+        component: './IntlConfigDetail',
+        hideInMenu: true,
+      },
+    ],
+  },
+  {
     path: '/',
     redirect: '/welcome',
   },
