@@ -13,3 +13,11 @@ export async function getIntlConfigData(id?: string) {
     method: 'GET',
   });
 }
+
+/** 添加项多语言数据项 GET /api/language-config/:id/add */
+export async function addListConfigData(id: string, options?: { [key: string]: any }) {
+  return request(`/api/language-config/${id}/add`, {
+    method: 'POST',
+    data: options || {},
+  });
+}

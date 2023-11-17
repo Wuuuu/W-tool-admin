@@ -1,11 +1,11 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import type { InputRef } from 'antd';
-import { Button, Form, Input, Popconfirm, Table, Tooltip } from 'antd';
+import { Button, Form, Input, Popconfirm, Table, Tooltip, message } from 'antd';
 import type { FormInstance } from 'antd/es/form';
 import { ItemProps, EditableRowProps } from './index.d';
 import { initDataSource, initDataItem, generatJsonFiles } from './configData';
 import ExportModal from './components/ExportModal';
-import { getIntlConfigData } from '@/services/intlConfig/index';
+import { getIntlConfigData, addListConfigData } from '@/services/intlConfig/index';
 import { PageContainer } from '@ant-design/pro-components';
 import { useParams, useRequest } from '@umijs/max';
 
@@ -113,17 +113,57 @@ const IntlConfigTable: React.FC = () => {
 
   const [visible, setVisible] = useState(false);
   const [dataSource, setDataSource] = useState<ItemProps[]>(initDataSource);
-
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [count, setCount] = useState(initDataSource.length);
 
   const handleLocalStorageSave = (data: ItemProps[]) => {
     localStorage.setItem('intl-data-config', JSON.stringify(data));
   };
 
+  const handleSaveNewData = async (record: ItemProps) => {
+    const { key, ...otherCurrentRowData } = record;
+    console.log('key', key);
+    try {
+      const result = await addListConfigData(params?.id, otherCurrentRowData);
+      console.log('result', result);
+      if (result.success) {
+        message.success('保存成功');
+      }
+    } catch (error) {
+      message.warning('保存失败');
+    }
+  };
+
+  const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
+    console.log('selectedRowKeys changed: ', newSelectedRowKeys);
+    setSelectedRowKeys(newSelectedRowKeys);
+  };
+
+  const handleTranslte = async (record: ItemProps) => {
+    console.log('record', record);
+    // const result = await googleTranslate(record.desc, {
+    //   to: 'en',
+    //   proxy: {
+    //     host: '192.168.201.4',
+    //     port: 8000,
+    //     auth: {
+    //       username: 'mikeymike',
+    //       password: 'rapunz3l',
+    //     },
+    //   },
+    // });
+    // console.log('result', result);
+  };
+
   const handleDelete = (key: React.Key) => {
     const newData = dataSource.filter((item) => item.key !== key);
     setDataSource(newData);
     handleLocalStorageSave(newData);
+  };
+
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: onSelectChange,
   };
 
   const defaultColumns: (ColumnTypes[number] & { editable?: boolean; dataIndex: string })[] = [
@@ -188,11 +228,36 @@ const IntlConfigTable: React.FC = () => {
     {
       title: 'operation',
       dataIndex: 'operation',
+      width: 180,
       render: (_, record: ItemProps) =>
         dataSource.length >= 1 ? (
-          <Popconfirm title="确定删除?" onConfirm={() => handleDelete(record.key)}>
-            <a style={{ color: '#dd5044' }}>删除</a>
-          </Popconfirm>
+          <>
+            <Popconfirm title="确定删除?" onConfirm={() => handleDelete(record.key)}>
+              <a style={{ color: '#dd5044' }}>删除</a>
+            </Popconfirm>
+            <span
+              onClick={() => handleSaveNewData(record)}
+              style={{
+                display: 'inline-block',
+                marginLeft: 8,
+                color: '#40a9ff',
+                cursor: 'pointer',
+              }}
+            >
+              保存
+            </span>
+            <span
+              onClick={() => handleTranslte(record)}
+              style={{
+                display: 'inline-block',
+                marginLeft: 8,
+                color: 'pink',
+                cursor: 'pointer',
+              }}
+            >
+              一键翻译
+            </span>
+          </>
         ) : null,
     },
   ];
@@ -214,7 +279,9 @@ const IntlConfigTable: React.FC = () => {
       ...item,
       ...row,
     });
+    // const { key, ...otherRowData } = row;
     setDataSource(newData);
+    // addListConfigData(params?.id, otherRowData);
     handleLocalStorageSave(newData);
   };
 
@@ -289,6 +356,7 @@ const IntlConfigTable: React.FC = () => {
       <Table
         rowKey="_id"
         virtual
+        rowSelection={rowSelection}
         loading={loading}
         components={components}
         rowClassName={() => 'editable-row'}
