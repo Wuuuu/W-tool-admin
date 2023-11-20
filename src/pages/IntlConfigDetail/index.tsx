@@ -8,6 +8,7 @@ import ExportModal from './components/ExportModal';
 import { getIntlConfigData, addListConfigData } from '@/services/intlConfig/index';
 import { PageContainer } from '@ant-design/pro-components';
 import { useParams, useRequest } from '@umijs/max';
+// import { translateText } from '@/services/ant-design-pro/api';
 
 const EditableContext = React.createContext<FormInstance<any> | null>(null);
 
@@ -86,7 +87,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
     ) : (
       <div
         className="editable-cell-value-wrap"
-        style={{ paddingRight: 24, minWidth: 80, minHeight: 20 }}
+        style={{ paddingRight: 24, minWidth: 80, minHeight: 32, lineHeight: '32px' }}
         onClick={toggleEdit}
       >
         {children}
@@ -124,7 +125,7 @@ const IntlConfigTable: React.FC = () => {
     const { key, ...otherCurrentRowData } = record;
     console.log('key', key);
     try {
-      const result = await addListConfigData(params?.id, otherCurrentRowData);
+      const result = await addListConfigData(params?.id || '', otherCurrentRowData);
       console.log('result', result);
       if (result.success) {
         message.success('保存成功');
@@ -182,7 +183,7 @@ const IntlConfigTable: React.FC = () => {
       title: '字段描述',
       dataIndex: 'desc',
       editable: true,
-      width: 220,
+      width: 200,
       fixed: 'left',
       render: (val) => (
         <Tooltip placement="top" title={val}>
@@ -200,11 +201,11 @@ const IntlConfigTable: React.FC = () => {
       dataIndex: 'fr',
       editable: true,
     },
-    {
-      title: '阿拉伯语 ar',
-      dataIndex: 'ar',
-      editable: true,
-    },
+    // {
+    //   title: '阿拉伯语 ar',
+    //   dataIndex: 'ar',
+    //   editable: true,
+    // },
     {
       title: '印地语 hi',
       dataIndex: 'hi',
@@ -226,7 +227,7 @@ const IntlConfigTable: React.FC = () => {
       editable: true,
     },
     {
-      title: 'operation',
+      title: '操作',
       dataIndex: 'operation',
       width: 180,
       render: (_, record: ItemProps) =>

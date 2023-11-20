@@ -7,6 +7,14 @@ export async function getIntlProjectList() {
   });
 }
 
+/** 新增多语言项目 GET /api/language-config/create */
+export async function addIntlProject(params: API.IntlProjectProps) {
+  return request(`/api/language-config/create`, {
+    method: 'POST',
+    data: params,
+  });
+}
+
 /** 获取项目多语言数据配置 GET /api/language-config/:id */
 export async function getIntlConfigData(id?: string) {
   return request(`/api/language-config/${id}`, {

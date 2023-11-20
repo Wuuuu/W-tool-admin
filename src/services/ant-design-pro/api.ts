@@ -84,3 +84,11 @@ export async function removeCollection(options?: { [key: string]: any }) {
     method: 'DELETE',
   });
 }
+
+/** 翻译文本 POST /api/translator */
+export async function translateText(params: API.TranslateTextProps) {
+  return request<Record<string, any>>('/api/translator', {
+    method: 'POST',
+    data: params,
+  });
+}
