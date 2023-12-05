@@ -29,3 +29,11 @@ export async function addListConfigData(id: string, options?: { [key: string]: a
     data: options || {},
   });
 }
+
+/** 翻译文本 POST /api/translator */
+export async function translateText(params: API.TranslateTextProps) {
+  return request<Record<string, any>>('/api/translator', {
+    method: 'POST',
+    data: params,
+  });
+}

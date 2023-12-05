@@ -1,4 +1,6 @@
 export interface ItemProps {
+  _id: string;
+  updated_time: string;
   key: number;
   languageField: string;
   desc: string;

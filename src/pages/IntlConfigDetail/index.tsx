@@ -1,14 +1,14 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import type { InputRef } from 'antd';
-import { Button, Form, Input, Popconfirm, Table, Tooltip, message } from 'antd';
+import { produce } from 'immer';
+import { Button, Form, Input, Popconfirm, Spin, Table, Tooltip, message } from 'antd';
 import type { FormInstance } from 'antd/es/form';
 import { ItemProps, EditableRowProps } from './index.d';
 import { initDataSource, initDataItem, generatJsonFiles } from './configData';
 import ExportModal from './components/ExportModal';
-import { getIntlConfigData, addListConfigData } from '@/services/intlConfig/index';
+import { getIntlConfigData, addListConfigData, translateText } from '@/services/intlConfig/index';
 import { PageContainer } from '@ant-design/pro-components';
 import { useParams, useRequest } from '@umijs/max';
-// import { translateText } from '@/services/ant-design-pro/api';
 
 const EditableContext = React.createContext<FormInstance<any> | null>(null);
 
@@ -87,7 +87,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
     ) : (
       <div
         className="editable-cell-value-wrap"
-        style={{ paddingRight: 24, minWidth: 80, minHeight: 32, lineHeight: '32px' }}
+        style={{ minWidth: 80, minHeight: 32, lineHeight: '32px' }}
         onClick={toggleEdit}
       >
         {children}
@@ -114,6 +114,7 @@ const IntlConfigTable: React.FC = () => {
 
   const [visible, setVisible] = useState(false);
   const [dataSource, setDataSource] = useState<ItemProps[]>(initDataSource);
+  const [loadingIds, setLoadingIds] = useState<string[]>([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [count, setCount] = useState(initDataSource.length);
 
@@ -142,18 +143,35 @@ const IntlConfigTable: React.FC = () => {
 
   const handleTranslte = async (record: ItemProps) => {
     console.log('record', record);
-    // const result = await googleTranslate(record.desc, {
-    //   to: 'en',
-    //   proxy: {
-    //     host: '192.168.201.4',
-    //     port: 8000,
-    //     auth: {
-    //       username: 'mikeymike',
-    //       password: 'rapunz3l',
-    //     },
-    //   },
-    // });
-    // console.log('result', result);
+    const { _id, languageField } = record;
+    setLoadingIds((val) => [...val, _id]);
+    const params = {
+      translatText: languageField,
+      targetLang: ['zh', 'fr', 'es'],
+      detectedSourceLang: 'en',
+    };
+    const result = await translateText(params);
+    console.log('result', result);
+    if (result.success) {
+      const { data } = result;
+      const translatTextObj: Record<string, string> = {};
+      for (const i of data) {
+        let key = i.targetLang;
+        if (key === 'zh') {
+          key = 'zh-CN';
+        }
+        translatTextObj[key] = i.text;
+      }
+      message.success('翻译完成～');
+      const newLoadingIds = loadingIds.filter((id) => id !== _id);
+      setLoadingIds(newLoadingIds);
+      setDataSource(
+        produce(dataSource, (draft) => {
+          const index = draft.findIndex((item: ItemProps) => item._id === _id);
+          if (index !== -1) draft[index] = { ...draft[index], ...translatTextObj };
+        }),
+      );
+    }
   };
 
   const handleDelete = (key: React.Key) => {
@@ -173,6 +191,7 @@ const IntlConfigTable: React.FC = () => {
       dataIndex: 'languageField',
       editable: true,
       fixed: 'left',
+      width: 120,
       render: (val) => (
         <Tooltip placement="top" title={val}>
           <span style={{ cursor: 'pointer' }}>{val}</span>
@@ -192,14 +211,40 @@ const IntlConfigTable: React.FC = () => {
       ),
     },
     {
+      title: '中文 zh-CN',
+      dataIndex: 'zh-CN',
+      editable: true,
+      width: 140,
+    },
+    {
+      title: '英文 en-US',
+      dataIndex: 'en-US',
+      editable: true,
+      width: 140,
+    },
+    {
+      title: '西班牙 es',
+      dataIndex: 'es',
+      editable: true,
+      width: 140,
+    },
+    {
+      title: '葡萄牙语 pt',
+      dataIndex: 'pt',
+      editable: true,
+      width: 140,
+    },
+    {
       title: '印尼语 id',
       dataIndex: 'id',
       editable: true,
+      width: 140,
     },
     {
       title: '法语 fr',
       dataIndex: 'fr',
       editable: true,
+      width: 140,
     },
     // {
     //   title: '阿拉伯语 ar',
@@ -210,25 +255,30 @@ const IntlConfigTable: React.FC = () => {
       title: '印地语 hi',
       dataIndex: 'hi',
       editable: true,
+      width: 140,
     },
     {
       title: '孟加拉语 bn',
       dataIndex: 'bn',
       editable: true,
+      width: 140,
     },
     {
       title: '老挝语 lo',
       dataIndex: 'lo',
       editable: true,
+      width: 140,
     },
     {
       title: '越南语 vi',
       dataIndex: 'vi',
       editable: true,
+      width: 140,
     },
     {
       title: '操作',
       dataIndex: 'operation',
+      fixed: 'right',
       width: 180,
       render: (_, record: ItemProps) =>
         dataSource.length >= 1 ? (
@@ -256,8 +306,9 @@ const IntlConfigTable: React.FC = () => {
                 cursor: 'pointer',
               }}
             >
-              一键翻译
+              {loadingIds.includes(record._id) ? '翻译中' : '一键翻译'}
             </span>
+            {loadingIds.includes(record._id) && <Spin size="small" />}
           </>
         ) : null,
     },
@@ -337,6 +388,7 @@ const IntlConfigTable: React.FC = () => {
     };
   });
 
+  console.log('data', dataSource);
   return (
     <PageContainer>
       <Button onClick={handleAdd} type="primary" style={{ marginBottom: 16 }}>
