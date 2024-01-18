@@ -113,4 +113,17 @@ declare namespace API {
     description?: string;
     type?: NoticeIconItemType;
   };
+
+  type IntlProjectProps = {
+    projectName: string;
+    projectType: string;
+    coverUrl: string;
+    description: string;
+  };
+
+  type TranslateTextProps = {
+    translatText: string;
+    targetLang: string[];
+    detectedSourceLang?: string;
+  };
 }

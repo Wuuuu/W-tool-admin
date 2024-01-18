@@ -101,7 +101,7 @@ const handleRemove = async (selectedRows: API.CollectionListItem[]) => {
 const CollectionTable: React.FC = () => {
   const modalFormRef = useRef<ProFormInstance>();
 
-  const [createModalOpen, handleModalOpen] = useState<boolean>(false);
+  const [createModalOpen, setCreateModalOpen] = useState<boolean>(false);
   const [confirmLoading, setConfirmLoading] = useState<boolean>(false);
 
   const [showDetail, setShowDetail] = useState<boolean>(false);
@@ -216,7 +216,7 @@ const CollectionTable: React.FC = () => {
         <a
           key="update"
           onClick={async () => {
-            await handleModalOpen(true);
+            await setCreateModalOpen(true);
             setCurrentRow(record);
             modalFormRef.current?.setFieldsValue({
               ...record,
@@ -247,7 +247,7 @@ const CollectionTable: React.FC = () => {
             type="primary"
             key="primary"
             onClick={() => {
-              handleModalOpen(true);
+              setCreateModalOpen(true);
             }}
           >
             <PlusOutlined /> 新建
@@ -310,14 +310,14 @@ const CollectionTable: React.FC = () => {
             setCurrentRow(undefined);
             modalFormRef.current?.resetFields();
           }
-          handleModalOpen(open);
+          setCreateModalOpen(open);
         }}
         onFinish={async (value) => {
           const success = !currentRow
             ? await handleAdd(value as API.CollectionListItem)
             : await handleUpdate({ ...value, _id: currentRow._id } as API.CollectionListItem);
           if (success) {
-            handleModalOpen(false);
+            setCreateModalOpen(false);
             if (actionRef.current) {
               actionRef.current.reload();
               // 数据创建完成时，清空表单数据

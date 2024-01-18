@@ -1,11 +1,11 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import type { InputRef } from 'antd';
-import { Button, Form, Input, Popconfirm, Table, Tooltip, message } from 'antd';
+import { produce } from 'immer';
+import { Button, Form, Input, Popconfirm, Spin, Table, Tooltip, message } from 'antd';
 import type { FormInstance } from 'antd/es/form';
 import { ItemProps, EditableRowProps } from './index.d';
 import { initDataSource, initDataItem, generatJsonFiles, getLanguageCodeList } from './configData';
 import ExportModal from './components/ExportModal';
-import { produce } from 'immer';
 import {
   getIntlConfigData,
   addListConfigData,
@@ -93,7 +93,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
     ) : (
       <div
         className="editable-cell-value-wrap"
-        style={{ paddingRight: 24, minWidth: 80, minHeight: 20 }}
+        style={{ minWidth: 80, minHeight: 32, lineHeight: '32px' }}
         onClick={toggleEdit}
       >
         {children}
@@ -120,6 +120,7 @@ const IntlConfigTable: React.FC = () => {
 
   const [visible, setVisible] = useState(false);
   const [dataSource, setDataSource] = useState<ItemProps[]>(initDataSource);
+  const [loadingIds, setLoadingIds] = useState<string[]>([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [count, setCount] = useState(initDataSource.length);
 
@@ -155,8 +156,12 @@ const IntlConfigTable: React.FC = () => {
   };
 
   const handleTranslte = async (record: ItemProps) => {
-    console.log('record', record);
     const { languageField, _id } = record;
+    setLoadingIds(
+      produce((draft) => {
+        draft.push(_id);
+      }),
+    );
     const params = {
       translatText: languageField,
       detectedSourceLang: 'English',
@@ -170,6 +175,12 @@ const IntlConfigTable: React.FC = () => {
           const { message } = choices[0];
           const translateObj = JSON.parse(message.content) || {};
           console.log('translateObj', translateObj);
+          setLoadingIds(
+            produce((draft) => {
+              const index = draft.findIndex((id) => id === _id);
+              if (index !== -1) draft.splice(index, 1);
+            }),
+          );
           setDataSource(
             produce(dataSource, (draft) => {
               const currentItemData = draft.find((i) => i._id === _id);
@@ -223,6 +234,7 @@ const IntlConfigTable: React.FC = () => {
       dataIndex: 'languageField',
       editable: true,
       fixed: 'left',
+      width: 120,
       render: (val) => (
         <Tooltip placement="top" title={val}>
           <span style={{ cursor: 'pointer' }}>{val}</span>
@@ -233,7 +245,7 @@ const IntlConfigTable: React.FC = () => {
       title: '字段描述',
       dataIndex: 'desc',
       editable: true,
-      width: 220,
+      width: 200,
       fixed: 'left',
       render: (val) => (
         <Tooltip placement="top" title={val}>
@@ -242,45 +254,75 @@ const IntlConfigTable: React.FC = () => {
       ),
     },
     {
+      title: '中文 zh-CN',
+      dataIndex: 'zh-CN',
+      editable: true,
+      width: 140,
+    },
+    {
+      title: '英文 en-US',
+      dataIndex: 'en-US',
+      editable: true,
+      width: 140,
+    },
+    {
+      title: '西班牙 es',
+      dataIndex: 'es',
+      editable: true,
+      width: 140,
+    },
+    {
+      title: '葡萄牙语 pt',
+      dataIndex: 'pt',
+      editable: true,
+      width: 140,
+    },
+    {
       title: '印尼语 id',
       dataIndex: 'id',
       editable: true,
+      width: 140,
     },
     {
       title: '法语 fr',
       dataIndex: 'fr',
       editable: true,
+      width: 140,
     },
-    {
-      title: '阿拉伯语 ar',
-      dataIndex: 'ar',
-      editable: true,
-    },
+    // {
+    //   title: '阿拉伯语 ar',
+    //   dataIndex: 'ar',
+    //   editable: true,
+    // },
     {
       title: '印地语 hi',
       dataIndex: 'hi',
       editable: true,
+      width: 140,
     },
     {
       title: '孟加拉语 bn',
       dataIndex: 'bn',
       editable: true,
+      width: 140,
     },
     {
       title: '老挝语 lo',
       dataIndex: 'lo',
       editable: true,
+      width: 140,
     },
     {
       title: '越南语 vi',
       dataIndex: 'vi',
       editable: true,
+      width: 140,
     },
     {
-      title: 'operation',
+      title: '操作',
       dataIndex: 'operation',
-      width: 180,
       fixed: 'right',
+      width: 180,
       render: (_, record: ItemProps) =>
         dataSource.length >= 1 ? (
           <>
@@ -307,8 +349,9 @@ const IntlConfigTable: React.FC = () => {
                 cursor: 'pointer',
               }}
             >
-              一键翻译
+              {loadingIds.includes(record._id) ? '翻译中' : '一键翻译'}
             </span>
+            {loadingIds.includes(record._id) && <Spin size="small" />}
           </>
         ) : null,
     },
@@ -390,6 +433,7 @@ const IntlConfigTable: React.FC = () => {
     };
   });
 
+  console.log('data', dataSource);
   return (
     <PageContainer>
       <Button onClick={handleAdd} type="primary" style={{ marginBottom: 16 }}>

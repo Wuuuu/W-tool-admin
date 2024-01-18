@@ -8,6 +8,14 @@ export async function getIntlProjectList() {
   });
 }
 
+/** 新增多语言项目 GET /api/language-config/create */
+export async function addIntlProject(params: API.IntlProjectProps) {
+  return request(`/api/language-config/create`, {
+    method: 'POST',
+    data: params,
+  });
+}
+
 /** 获取项目多语言数据配置 GET /api/language-config/:id */
 export async function getIntlConfigData(id?: string) {
   return request(`/api/language-config/${id}`, {
@@ -34,6 +42,13 @@ export async function removeIntlItemData(options: DeleteTranslationItemProps) {
 /** gpt4model 批量翻译成多语言 GET /api/openai-service/patch-translation-gpt4 */
 export async function patchTranslationByGpt4(params: PatchTranslationProps) {
   return request('/api/openai-service/patch-translation-gpt4', {
+    method: 'POST',
+    data: params,
+  });
+}
+
+export async function translateText(params: API.TranslateTextProps) {
+  return request<Record<string, any>>('/api/translator', {
     method: 'POST',
     data: params,
   });

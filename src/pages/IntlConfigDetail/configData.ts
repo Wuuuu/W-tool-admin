@@ -470,6 +470,10 @@ export const intlConfigDataKeys = [
 export const initDataItem = {
   languageField: '',
   desc: '',
+  'zh-CN': '',
+  'en-US': '',
+  es: '',
+  pt: '',
   id: '',
   fr: '',
   ar: '',

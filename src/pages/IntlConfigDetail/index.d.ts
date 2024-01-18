@@ -10,6 +10,7 @@ export interface ItemProps {
   bn: string;
   lo: string;
   vi: string;
+  updated_time?: string;
   newItem?: boolean;
 }
 
