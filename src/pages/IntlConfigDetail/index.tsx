@@ -3,14 +3,21 @@ import type { InputRef } from 'antd';
 import { Button, Form, Input, Popconfirm, Table, Tooltip, message } from 'antd';
 import type { FormInstance } from 'antd/es/form';
 import { ItemProps, EditableRowProps } from './index.d';
-import { initDataSource, initDataItem, generatJsonFiles } from './configData';
+import { initDataSource, initDataItem, generatJsonFiles, getLanguageCodeList } from './configData';
 import ExportModal from './components/ExportModal';
-import { getIntlConfigData, addListConfigData } from '@/services/intlConfig/index';
+import { produce } from 'immer';
+import {
+  getIntlConfigData,
+  addListConfigData,
+  patchTranslationByGpt4,
+  removeIntlItemData,
+} from '@/services/intlConfig/index';
 import { PageContainer } from '@ant-design/pro-components';
 import { useParams, useRequest } from '@umijs/max';
+import { findIndex, isEmpty, omit } from 'lodash';
 
 const EditableContext = React.createContext<FormInstance<any> | null>(null);
-
+let id = 1;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const EditableRow: React.FC<EditableRowProps> = ({ index, ...props }) => {
   const [form] = Form.useForm();
@@ -121,13 +128,21 @@ const IntlConfigTable: React.FC = () => {
   };
 
   const handleSaveNewData = async (record: ItemProps) => {
-    const { key, ...otherCurrentRowData } = record;
-    console.log('key', key);
+    const { newItem, ...otherCurrentRowData } = record;
+    let saveData = newItem
+      ? omit(otherCurrentRowData, ['_id', 'key'])
+      : omit(otherCurrentRowData, ['key']);
     try {
-      const result = await addListConfigData(params?.id, otherCurrentRowData);
+      const result = await addListConfigData(params?.id || '', saveData);
       console.log('result', result);
       if (result.success) {
         message.success('保存成功');
+        setDataSource(
+          produce(dataSource, (draft) => {
+            const currentIndex = findIndex(draft, (i) => i._id === record._id);
+            draft[currentIndex] = result.data;
+          }),
+        );
       }
     } catch (error) {
       message.warning('保存失败');
@@ -141,24 +156,60 @@ const IntlConfigTable: React.FC = () => {
 
   const handleTranslte = async (record: ItemProps) => {
     console.log('record', record);
-    // const result = await googleTranslate(record.desc, {
-    //   to: 'en',
-    //   proxy: {
-    //     host: '192.168.201.4',
-    //     port: 8000,
-    //     auth: {
-    //       username: 'mikeymike',
-    //       password: 'rapunz3l',
-    //     },
-    //   },
-    // });
-    // console.log('result', result);
+    const { languageField, _id } = record;
+    const params = {
+      translatText: languageField,
+      detectedSourceLang: 'English',
+      targetLang: getLanguageCodeList(),
+    };
+    const result = await patchTranslationByGpt4(params);
+    if (result.data && result.success) {
+      const { choices } = result.data;
+      try {
+        if (choices && choices.length > 0) {
+          const { message } = choices[0];
+          const translateObj = JSON.parse(message.content) || {};
+          console.log('translateObj', translateObj);
+          setDataSource(
+            produce(dataSource, (draft) => {
+              const currentItemData = draft.find((i) => i._id === _id);
+              if (!isEmpty(currentItemData)) {
+                for (const key in translateObj) {
+                  if (currentItemData.hasOwnProperty(key)) {
+                    currentItemData[key] = translateObj[key];
+                  }
+                }
+              }
+            }),
+          );
+        }
+      } catch (error) {
+        message.warning('翻译错误，请重试');
+      }
+    }
   };
 
-  const handleDelete = (key: React.Key) => {
-    const newData = dataSource.filter((item) => item.key !== key);
-    setDataSource(newData);
-    handleLocalStorageSave(newData);
+  const handleDelete = async (record: ItemProps) => {
+    const { _id } = record;
+    const searchParams = {
+      parentId: params.id || '',
+      id: _id,
+    };
+    try {
+      const result = await removeIntlItemData(searchParams);
+      if (result.data && result.success) {
+        message.success('删除成功');
+      }
+      setDataSource(
+        produce(dataSource, (draft) => {
+          const index = draft.findIndex((item) => item._id === _id);
+          if (index !== -1) draft.splice(index, 1);
+        }),
+      );
+    } catch (error) {
+      message.warning('删除失败');
+    }
+    // handleLocalStorageSave(newData);
   };
 
   const rowSelection = {
@@ -229,10 +280,11 @@ const IntlConfigTable: React.FC = () => {
       title: 'operation',
       dataIndex: 'operation',
       width: 180,
+      fixed: 'right',
       render: (_, record: ItemProps) =>
         dataSource.length >= 1 ? (
           <>
-            <Popconfirm title="确定删除?" onConfirm={() => handleDelete(record.key)}>
+            <Popconfirm title="确定删除?" onConfirm={() => handleDelete(record)}>
               <a style={{ color: '#dd5044' }}>删除</a>
             </Popconfirm>
             <span
@@ -251,7 +303,7 @@ const IntlConfigTable: React.FC = () => {
               style={{
                 display: 'inline-block',
                 marginLeft: 8,
-                color: 'pink',
+                color: '#40a9ff',
                 cursor: 'pointer',
               }}
             >
@@ -264,7 +316,9 @@ const IntlConfigTable: React.FC = () => {
 
   const handleAdd = () => {
     const newData: ItemProps = {
+      _id: `${++id}`,
       key: count,
+      newItem: true,
       ...initDataItem,
     };
     setDataSource([newData, ...dataSource]);
@@ -355,7 +409,7 @@ const IntlConfigTable: React.FC = () => {
       </Button>
       <Table
         rowKey="_id"
-        virtual
+        virtual={true}
         rowSelection={rowSelection}
         loading={loading}
         components={components}

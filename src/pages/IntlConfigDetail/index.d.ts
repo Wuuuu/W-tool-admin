@@ -1,4 +1,5 @@
 export interface ItemProps {
+  _id: string;
   key: number;
   languageField: string;
   desc: string;
@@ -9,6 +10,7 @@ export interface ItemProps {
   bn: string;
   lo: string;
   vi: string;
+  newItem?: boolean;
 }
 
 export interface EditableRowProps {

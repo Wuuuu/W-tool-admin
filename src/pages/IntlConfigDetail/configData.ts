@@ -1,3 +1,4 @@
+import { omit } from 'lodash';
 import { ItemProps } from './index.d';
 
 export const intlConfigDataKeys = [
@@ -477,6 +478,11 @@ export const initDataItem = {
   lo: '',
   vi: '',
 };
+
+export function getLanguageCodeList() {
+  const languageObject = omit(initDataItem, ['desc', 'languageField']);
+  return Object.keys(languageObject);
+}
 
 let count = 0;
 const storageIntlConfigDataString = localStorage.getItem('intl-data-config');

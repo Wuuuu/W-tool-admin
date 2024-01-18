@@ -1,4 +1,5 @@
 import { request } from '@umijs/max';
+import { DeleteTranslationItemProps, PatchTranslationProps } from './typeings';
 
 /** 获取多语言项目列表 GET /api/language-config/list */
 export async function getIntlProjectList() {
@@ -19,5 +20,21 @@ export async function addListConfigData(id: string, options?: { [key: string]: a
   return request(`/api/language-config/${id}/add`, {
     method: 'POST',
     data: options || {},
+  });
+}
+
+/** 删除合集子类别 DELETE /api/language-config/{id} */
+export async function removeIntlItemData(options: DeleteTranslationItemProps) {
+  return request(`/api/language-config/delete`, {
+    method: 'POST',
+    data: options || {},
+  });
+}
+
+/** gpt4model 批量翻译成多语言 GET /api/openai-service/patch-translation-gpt4 */
+export async function patchTranslationByGpt4(params: PatchTranslationProps) {
+  return request('/api/openai-service/patch-translation-gpt4', {
+    method: 'POST',
+    data: params,
   });
 }
