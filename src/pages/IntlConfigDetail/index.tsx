@@ -289,11 +289,18 @@ const IntlConfigTable: React.FC = () => {
       editable: true,
       width: 140,
     },
-    // {
-    //   title: '阿拉伯语 ar',
-    //   dataIndex: 'ar',
-    //   editable: true,
-    // },
+    {
+      title: '日语 ja',
+      dataIndex: 'ja',
+      editable: true,
+      width: 140,
+    },
+    {
+      title: '韩语 ko',
+      dataIndex: 'ko',
+      editable: true,
+      width: 140,
+    },
     {
       title: '印地语 hi',
       dataIndex: 'hi',

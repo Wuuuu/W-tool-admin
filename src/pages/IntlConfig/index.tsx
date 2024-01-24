@@ -97,7 +97,7 @@ const IntlProjectList = () => {
           </div>
           <Row gutter={16}>
             {projectList?.map((item: IntlProjectListProps) => (
-              <Col span={8} key={item._id}>
+              <Col span={8} key={item._id} style={{ marginBottom: 24 }}>
                 <Card
                   cover={
                     <img
