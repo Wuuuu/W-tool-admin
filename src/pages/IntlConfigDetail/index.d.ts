@@ -3,6 +3,12 @@ export interface ItemProps {
   key: number;
   languageField: string;
   desc: string;
+  'zh-CN': string;
+  'en-US': string;
+  ja: string;
+  ko: string;
+  es: string;
+  pt: string;
   id: string;
   fr: string;
   ar: string;
