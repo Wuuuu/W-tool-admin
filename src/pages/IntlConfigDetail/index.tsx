@@ -156,14 +156,14 @@ const IntlConfigTable: React.FC = () => {
   };
 
   const handleTranslte = async (record: ItemProps) => {
-    const { languageField, _id } = record;
+    const { _id } = record;
     setLoadingIds(
       produce((draft) => {
         draft.push(_id);
       }),
     );
     const params = {
-      translatText: languageField,
+      translatText: record['en-US'],
       detectedSourceLang: 'English',
       targetLang: getLanguageCodeList(),
     };
