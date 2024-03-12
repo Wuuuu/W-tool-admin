@@ -4,7 +4,7 @@ import { produce } from 'immer';
 import { Button, Form, Input, Popconfirm, Spin, Table, Tooltip, message } from 'antd';
 import type { FormInstance } from 'antd/es/form';
 import { ItemProps, EditableRowProps } from './index.d';
-import { initDataSource, initDataItem, generatJsonFiles, getLanguageCodeList } from './configData';
+import { initDataItem, generatJsonFiles, getLanguageCodeList } from './configData';
 import ExportModal from './components/ExportModal';
 import {
   getIntlConfigData,
@@ -18,6 +18,12 @@ import { findIndex, isEmpty, omit } from 'lodash';
 
 const EditableContext = React.createContext<FormInstance<any> | null>(null);
 let id = 1;
+const settingStyle = {
+  display: 'inline-block',
+  marginLeft: 8,
+  color: '#40a9ff',
+  cursor: 'pointer',
+};
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const EditableRow: React.FC<EditableRowProps> = ({ index, ...props }) => {
   const [form] = Form.useForm();
@@ -67,7 +73,6 @@ const EditableCell: React.FC<EditableCellProps> = ({
   const save = async () => {
     try {
       const values = await form.validateFields();
-
       toggleEdit();
       handleSave({ ...record, ...values });
     } catch (errInfo) {
@@ -119,10 +124,9 @@ const IntlConfigTable: React.FC = () => {
   });
 
   const [visible, setVisible] = useState(false);
-  const [dataSource, setDataSource] = useState<ItemProps[]>(initDataSource);
+  const [dataSource, setDataSource] = useState<ItemProps[]>([]);
   const [loadingIds, setLoadingIds] = useState<string[]>([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const [count, setCount] = useState(initDataSource.length);
 
   const handleLocalStorageSave = (data: ItemProps[]) => {
     localStorage.setItem('intl-data-config', JSON.stringify(data));
@@ -155,17 +159,31 @@ const IntlConfigTable: React.FC = () => {
     setSelectedRowKeys(newSelectedRowKeys);
   };
 
-  const handleTranslte = async (record: ItemProps) => {
+  const getNeedCompletedFileds = (record: ItemProps) => {
+    let result = [];
+    const langCodeList = getLanguageCodeList();
+    for (const i in record) {
+      if (langCodeList.includes(i) && !record[i]) {
+        result.push(i);
+      }
+    }
+    return result;
+  };
+
+  const handleTranslte = async (record: ItemProps, action: string) => {
     const { _id } = record;
+    if (loadingIds.includes(_id)) return;
     setLoadingIds(
       produce((draft) => {
         draft.push(_id);
       }),
     );
+    const targetLangList =
+      action === 'full' ? getLanguageCodeList() : getNeedCompletedFileds(record);
     const params = {
       translatText: record['en-US'],
       detectedSourceLang: 'English',
-      targetLang: getLanguageCodeList(),
+      targetLang: targetLangList,
     };
     const result = await patchTranslationByGpt4(params);
     if (result.data && result.success) {
@@ -196,6 +214,12 @@ const IntlConfigTable: React.FC = () => {
         }
       } catch (error) {
         message.warning('翻译错误，请重试');
+        setLoadingIds(
+          produce((draft) => {
+            const index = draft.findIndex((id) => id === _id);
+            if (index !== -1) draft.splice(index, 1);
+          }),
+        );
       }
     }
   };
@@ -254,14 +278,44 @@ const IntlConfigTable: React.FC = () => {
       ),
     },
     {
+      title: '翻译模块',
+      dataIndex: 'moduleClassification',
+      editable: true,
+      width: 100,
+    },
+    {
       title: '中文 zh-CN',
       dataIndex: 'zh-CN',
       editable: true,
       width: 140,
     },
     {
+      title: '中文繁体 zh-TW',
+      dataIndex: 'zh-TW',
+      editable: true,
+      width: 140,
+    },
+    {
       title: '英文 en-US',
       dataIndex: 'en-US',
+      editable: true,
+      width: 140,
+    },
+    {
+      title: '日语 ja',
+      dataIndex: 'ja',
+      editable: true,
+      width: 140,
+    },
+    {
+      title: '韩语 ko',
+      dataIndex: 'ko',
+      editable: true,
+      width: 140,
+    },
+    {
+      title: '德语 de',
+      dataIndex: 'de',
       editable: true,
       width: 140,
     },
@@ -329,55 +383,57 @@ const IntlConfigTable: React.FC = () => {
       title: '操作',
       dataIndex: 'operation',
       fixed: 'right',
-      width: 180,
-      render: (_, record: ItemProps) =>
-        dataSource.length >= 1 ? (
+      width: 240,
+      render: (_, record: ItemProps) => {
+        const omitObject = omit(record, [
+          'desc',
+          'languageField',
+          'moduleClassification',
+          'create_time',
+          'updated_time',
+          '_id',
+        ]);
+        const values = Object.values(omitObject);
+        const checkValues = values.some((i) => !i);
+        return dataSource.length >= 1 ? (
           <>
             <Popconfirm title="确定删除?" onConfirm={() => handleDelete(record)}>
               <a style={{ color: '#dd5044' }}>删除</a>
             </Popconfirm>
-            <span
-              onClick={() => handleSaveNewData(record)}
-              style={{
-                display: 'inline-block',
-                marginLeft: 8,
-                color: '#40a9ff',
-                cursor: 'pointer',
-              }}
-            >
+            <span onClick={() => handleSaveNewData(record)} style={settingStyle}>
               保存
             </span>
-            <span
-              onClick={() => handleTranslte(record)}
-              style={{
-                display: 'inline-block',
-                marginLeft: 8,
-                color: '#40a9ff',
-                cursor: 'pointer',
-              }}
-            >
+            {checkValues && (
+              <span onClick={() => handleTranslte(record, 'complement')} style={settingStyle}>
+                {loadingIds.includes(record._id) ? '补全翻译中' : '补全翻译'}
+              </span>
+            )}
+            <span onClick={() => handleTranslte(record, 'full')} style={settingStyle}>
               {loadingIds.includes(record._id) ? '翻译中' : '一键翻译'}
             </span>
             {loadingIds.includes(record._id) && <Spin size="small" />}
           </>
-        ) : null,
+        ) : (
+          <></>
+        );
+      },
     },
   ];
 
   const handleAdd = () => {
     const newData: ItemProps = {
       _id: `${++id}`,
-      key: count,
+      key: Math.floor(Math.random() * 199999),
       newItem: true,
       ...initDataItem,
     };
     setDataSource([newData, ...dataSource]);
-    setCount(count + 1);
   };
 
   const handleSave = (row: ItemProps) => {
     const newData = [...dataSource];
-    const index = newData.findIndex((item) => row.key === item.key);
+    console.log('newData', newData);
+    const index = newData.findIndex((item) => row._id === item._id);
     const item = newData[index];
     newData.splice(index, 1, {
       ...item,
@@ -440,7 +496,6 @@ const IntlConfigTable: React.FC = () => {
     };
   });
 
-  console.log('data', dataSource);
   return (
     <PageContainer>
       <Button onClick={handleAdd} type="primary" style={{ marginBottom: 16 }}>

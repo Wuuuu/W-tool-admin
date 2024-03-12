@@ -9,6 +9,14 @@ type ExportModalProps = {
 
 const options = [
   { value: 'all', label: '全部' },
+  { value: 'zh-CN', label: '中文' },
+  { value: 'zh-TW', label: '中文（繁体）' },
+  { value: 'en-US', label: '英语' },
+  { value: 'ja', label: '日语' },
+  { value: 'ko', label: '韩语' },
+  { value: 'de', label: '德语' },
+  { value: 'es', label: '西班牙语' },
+  { value: 'pt', label: '葡萄牙语' },
   { value: 'id', label: '印尼语' },
   { value: 'fr', label: '法语' },
   // { value: 'ar', label: '阿拉伯语' },
